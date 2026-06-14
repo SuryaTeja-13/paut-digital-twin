@@ -1,0 +1,9 @@
+use_scattering,data_fraction,n_train,best_val_dice_fg,best_val_cls_acc
+True,1.0,735,0.6418,0.4968
+True,0.5,368,0.5795,0.4968
+True,0.25,184,0.5397,0.4841
+True,0.1,74,0.5406,0.4968
+False,1.0,735,0.6891,0.4968
+False,0.5,368,0.664,0.6051
+False,0.25,184,0.5673,0.4968
+False,0.1,74,0.5144,0.5032

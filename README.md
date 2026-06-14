@@ -334,6 +334,29 @@ py -3.14 -m tests.test_twin
 
 ---
 
+## Data-Ablation Results
+
+SCN-Attention U-Net vs plain Attention U-Net baseline across data fractions (60 epochs, Colab T4).
+
+| Data used | SCN val Dice | Plain U-Net val Dice |
+|-----------|-------------|----------------------|
+| 10% (74 imgs) | **0.541** | 0.514 |
+| 25% (184 imgs) | 0.540 | 0.567 |
+| 50% (368 imgs) | 0.580 | 0.664 |
+| 100% (735 imgs) | 0.642 | **0.689** |
+
+**Key finding:** At 10% of training data the SCN model outperforms the plain baseline (0.541 vs
+0.514), showing the fixed wavelet-scattering prior acts as a regulariser in the low-data regime
+that is typical of PAUT inspection. As data increases, the plain U-Net surpasses SCN — the added
+fusion complexity becomes a burden once sufficient data is available. Both models' classification
+heads stay near chance (~50%), confirming the decision to use the independent scattering-feature
+classifier for defect type (0.80 balanced accuracy).
+
+Curve: [`data/processed/ablation/ablation_curve.png`](data/processed/ablation/ablation_curve.png)
+Raw numbers: [`data/processed/ablation/ablation_results.csv`](data/processed/ablation/ablation_results.csv)
+
+---
+
 ## Run on a different machine / the cloud
 
 All paths and hyperparameters are in `configs/`. To train later on Colab/Kaggle GPU, swap the
