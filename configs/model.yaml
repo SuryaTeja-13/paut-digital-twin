@@ -1,0 +1,68 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Model + training config (Milestone 3, Student 2).
+# Same file runs on a CPU laptop (tiny batch, --limit) and a Colab/Kaggle GPU
+# (full data). Device is auto-detected — never hard-coded (design_decisions.md §5).
+# ─────────────────────────────────────────────────────────────────────────
+
+seed: 42
+
+data:
+  manifest: data/processed/manifest.csv
+  classes: [porosity, slag]          # porosity=0, slag=1 (classification)
+  num_workers: 0                     # 0 is safest on Windows; raise on Colab
+
+model:
+  in_channels: 1
+  seg_classes: 3                     # background, porosity, slag (decision §3)
+  n_classes: 2                       # porosity vs slag (decision §2)
+  base: 32                           # 32->64->128->256, bottleneck 512
+  use_scattering: true               # false = plain Attention-U-Net baseline (ablation §5.11)
+  dropout: 0.1
+  num_groups: 8
+  size_head: false                   # size is derived from the mask, not regressed (decision §11)
+  scattering:
+    J: 2                             # 2 -> 81 coeffs @ 64x64; try 3 if features too coarse
+    L: 8
+    order: 2
+    shape: [256, 256]
+
+loss:                                # L = w_seg*seg + w_cls*cls + w_boundary*boundary (decision §10)
+  w_seg: 0.6
+  w_cls: 0.3
+  w_boundary: 0.1
+  focal_gamma: 2.0
+  # seg term = dice + focal + focal-tversky, all foreground-focused so the model
+  # can't win by predicting all-background (architecture.md §5.6 re-check / §9).
+  dice_weight: 1.0
+  focal_weight: 1.0
+  tversky_weight: 1.0
+  tversky_alpha: 0.3                  # false-positive weight
+  tversky_beta: 0.7                   # false-negative weight (>alpha => misses hurt more)
+  tversky_gamma: 1.0                  # focal-tversky exponent (>1 focuses on hard cases)
+  include_background_in_dice: false   # exclude bg from Dice/Tversky averaging
+
+train:
+  epochs: 150
+  batch_size: 4                      # small data -> small batch -> GroupNorm
+  lr: 0.001
+  weight_decay: 0.0001
+  warmup_epochs: 5
+  scheduler: cosine                  # cosine | none
+  grad_clip: 1.0
+  amp: false                         # mixed precision: set true on GPU for speed
+  early_stop_patience: 25            # stop if val Dice hasn't improved in N epochs
+  class_weighting: true              # weight cls loss by inverse class frequency (269/525 imbalance)
+  ckpt_dir: checkpoints
+  ckpt_name: scn_attn_unet
+
+augment:                             # TRAIN split only
+  enabled: true
+  hflip_p: 0.5
+  vflip_p: 0.5
+  rot90_p: 0.5
+  gain_p: 0.5
+  gain_range: [0.8, 1.2]
+  speckle_p: 0.3
+  speckle_sigma: 0.05
+  attenuation_p: 0.2
+  attenuation_min: 0.7

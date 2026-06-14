@@ -1,0 +1,69 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Preprocessing config (Milestone 1, Student 1).
+# Every tunable lives here — NOT hard-coded in the code — so the same script
+# runs locally and in the cloud just by swapping this file (design_decisions.md §5).
+# ─────────────────────────────────────────────────────────────────────────
+
+seed: 42                          # fixed seed -> reproducible split (design_decisions.md §6)
+
+paths:
+  raw_dir: data/raw               # READ-ONLY originals (never edited)
+  processed_dir: data/processed   # outputs: <class>/<image_id>.npy
+  manifest: data/processed/manifest.csv
+  examples_dir: data/processed/examples   # before/after preview PNGs
+
+# 2-class problem: porosity vs slag (design_decisions.md decision §2 — NO normal/mixed).
+classes: [porosity, slag]
+
+patch_size: 256                   # final model input is 1 x 256 x 256
+
+# ── Color -> single amplitude channel (design_decisions.md decision §1) ──────────────
+# Our current images are grayscale-stored-as-RGB, so they take the gray path.
+# The colormap-inverse path is ready for FUTURE color TFM data — no code change.
+amplitude:
+  color_method: luminance         # luminance | colormap_inverse
+  colormap: jet                   # used only when color_method == colormap_inverse
+  gray_tolerance: 6               # max RGB channel spread to treat a pixel image as grayscale
+
+# ── Crop the matplotlib white frame / axes, keep genuine TFM data ──────────
+crop:
+  enabled: true
+  white_thresh: 250               # a pixel >= this is "white frame"
+  white_line_frac: 0.98           # a row/col that is >= this fraction white = border
+  margin: 2                       # extra pixels trimmed inward after detection
+  # stage 2: trim the anti-aliased gray rim the white crop leaves behind (a
+  # full-width bright edge band would otherwise be mis-detected as a defect).
+  trim_bright_band: true
+  band_bright_thresh: 40          # a full edge row/col brighter than this = frame rim
+  band_margin: 1
+
+# ── Gentle denoise. Default OFF: defects here are thin/faint and a median
+#    filter can erase them; the scattering network already suppresses speckle.
+denoise:
+  method: none                    # none | median | nlmeans
+  median_ksize: 3
+
+# ── Per-image intensity normalization (kills gain/brightness differences) ──
+normalize:
+  method: minmax                  # minmax -> [0,1] | zscore -> mean0/std1 (clipped)
+  zscore_clip: 3.0
+
+# ── Resize the cropped data region to patch_size x patch_size ──────────────
+# stretch: literal resize (doc default; data region is ~5% off square).
+# pad:     letterbox to square first (preserves aspect for characterization).
+resize:
+  mode: stretch                   # stretch | pad
+  interpolation: area             # area (best for downscale) | linear | cubic
+
+# ── Train/val/test split (design_decisions.md decision §6 + anti-leakage §7) ─────────
+split:
+  ratios: [0.70, 0.15, 0.15]      # train / val / test
+  stratify_by_class: true         # keep class balance across splits
+  group_by_weld: true             # keep all views of ONE weld in ONE split (anti-leakage)
+
+# ── Values recorded into the manifest ──────────────────────────────────────
+pixel_to_mm: 1.0                  # unknown -> 1.0, report in PIXELS (design_decisions.md decision §11)
+label_type: pseudo_pending        # no masks yet; Stage-1 pseudo-labels are the next module
+
+examples:
+  n: 6                            # number of before/after preview figures to save

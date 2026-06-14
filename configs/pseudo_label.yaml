@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Stage-1 pseudo-label config (Milestone 2, Student 1).
+# Generates APPROXIMATE defect masks from the amplitude patches by the classic
+# threshold -> morphology -> fill recipe (architecture.md §4.3). These bootstrap
+# Stage-2 model training; they are not gold ground truth.
+# ─────────────────────────────────────────────────────────────────────────
+
+seed: 42
+
+paths:
+  manifest: data/processed/manifest.csv      # read patches + class + split from here
+  masks_dir: data/processed/masks            # outputs: <class>/<image_id>.npy (uint8 label map)
+  overlays_dir: data/processed/mask_overlays # preview PNGs (patch + mask contour)
+
+# Segmentation label indices (design_decisions.md decision §3: background, porosity, slag).
+# Derived from the order of `classes`: background=0, classes[0]=1, classes[1]=2 ...
+classes: [porosity, slag]
+
+# ── Optional pre-smoothing to coalesce nearby bright pixels before threshold ─
+smooth:
+  sigma: 0.0            # 0 = off. small (0.5-1.0) helps connect porosity clusters
+
+# ── Thresholding: separate bright defect from near-black background ──────────
+threshold:
+  method: otsu          # otsu | percentile | fixed
+  floor: 0.08           # never threshold below this (guards against grabbing speckle)
+  offset: 0.0           # add to the computed threshold (raise = stricter)
+  percentile: 99.0      # used when method == percentile
+  fixed_value: 0.20     # used when method == fixed
+
+# ── Morphology to clean the binary mask ──────────────────────────────────────
+morphology:
+  open_ksize: 0         # 0 = off. opening removes specks but can erase 1px defects
+  close_ksize: 3        # closing connects small gaps / fills pinholes
+  min_area_px: 2        # drop connected components smaller than this (noise)
+  fill_holes: true      # fill interior holes inside a defect blob
+  fallback_keep_singletons: true  # if a mask comes out empty, retry keeping 1px defects
+                                   # (every image here has a defect — design_decisions.md §4)
+
+# ── Which splits to label ────────────────────────────────────────────────────
+# We have no hand labels yet, so we pseudo-label ALL splits to give the model
+# segmentation targets everywhere. val/test masks are approximate — replace with
+# a small hand-labeled set later for an honest segmentation score.
+splits: [train, val, test]
+
+overlays:
+  n: 8                  # number of preview overlays to save (spread across classes)

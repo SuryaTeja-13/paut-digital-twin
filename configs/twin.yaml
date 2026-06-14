@@ -1,0 +1,15 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Digital-twin / health config (Milestone 6, Student 4).
+# ALL thresholds here are TUNABLE PLACEHOLDERS, not validated weld-acceptance
+# criteria. Calibrate to ISO 5817 / ASME BPVC with a domain expert before any
+# real pass/fail use (design_decisions.md §3.13, acceptance-criteria reminder).
+# ─────────────────────────────────────────────────────────────────────────
+
+health:
+  capacity: 5.0                # severity "budget"; health = 1 - min(1, Σseverity/capacity)
+  review_health: 0.7           # health below this -> REVIEW
+  review_moderate_count: 2     # this many moderate defects -> REVIEW
+
+# defect-presence detection from the mask (design_decisions.md §3.4): an image with total
+# defect area below this is treated as "no defect present".
+empty_mask_area_px: 10

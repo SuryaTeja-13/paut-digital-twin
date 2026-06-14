@@ -1,0 +1,34 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Characterization config (Milestone 4, Student 2).
+# Per-defect measurements are derived from the mask. pixel_to_mm defaults to 1.0
+# (unknown scale -> report in pixels); set the real value later, no code change.
+# ─────────────────────────────────────────────────────────────────────────
+
+paths:
+  manifest: data/processed/manifest.csv
+  out_dir: data/processed/characterization      # defects.json per image + summary csv
+  overlays_dir: data/processed/char_overlays     # annotated previews
+
+classes: [porosity, slag]
+pixel_to_mm: 1.0
+min_area_px: 2
+
+# Where the masks come from: "model" (run the checkpoint) or "pseudo" (Stage-1 masks).
+mask_source: model
+checkpoint: checkpoints/scn_attn_unet_best.pt
+
+# Severity scaffold — TUNABLE PLACEHOLDERS, NOT acceptance criteria.
+# Calibrate to ISO 5817 / ASME BPVC with a domain expert before any pass/fail use.
+severity:
+  type_weight:
+    porosity: 1.0
+    slag: 1.2
+  size_ref_px: 200.0          # area that maps to severity ~1.0 (before type weight)
+  orientation_factor: 1.0     # placeholder (raise for unfavourable orientations)
+  location_factor: 1.0        # placeholder (needs weld geometry — not available yet)
+  cutoffs:
+    moderate: 0.5
+    critical: 1.0
+
+overlays:
+  n: 8

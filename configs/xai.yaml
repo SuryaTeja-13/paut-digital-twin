@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Explainable-AI config (Milestone 5, Student 3).
+# Primary: Seg-Grad-CAM on the decoder (segmentation head) + intrinsic attention
+# maps + faithfulness metrics. SHAP on the classifier is optional (heavy / the
+# classifier is the weak head — seg-derived type is what we rely on).
+# ─────────────────────────────────────────────────────────────────────────
+
+paths:
+  manifest: data/processed/manifest.csv
+  checkpoint: checkpoints/scn_attn_unet_best.pt
+  out_dir: data/processed/xai            # per-image trust scores (json) + summary
+  overlays_dir: data/processed/xai_overlays
+
+classes: [porosity, slag]
+
+gradcam:
+  method: grad_cam                       # grad_cam | grad_cam++
+  target: seg_true                       # seg_true (use the image's true class) | seg_pred | cls
+faithfulness:
+  steps: 20                              # deletion/insertion resolution
+attention:
+  show: gate_up1                         # which intrinsic map to include in the overlay panel
+
+overlays:
+  n: 8
+  alpha: 0.5                             # heatmap blend over the grayscale patch

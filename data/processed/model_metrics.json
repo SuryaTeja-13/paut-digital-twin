@@ -1,0 +1,37 @@
+{
+  "checkpoint": "scn_attn_unet_best.pt",
+  "split": "test",
+  "n_images": 158,
+  "segmentation": {
+    "dice": {
+      "background": 0.9999,
+      "porosity": 0.4537,
+      "slag": 0.6823
+    },
+    "iou": {
+      "background": 0.9999,
+      "porosity": 0.2934,
+      "slag": 0.5177
+    },
+    "mean_fg_dice": 0.568
+  },
+  "type_via_scattering_clf": {
+    "balanced_acc": 0.804,
+    "per_class": {
+      "porosity": 0.7875,
+      "slag": 0.8205
+    }
+  },
+  "type_via_segmentation": {
+    "balanced_acc": 0.6538,
+    "per_class": {
+      "porosity": 0.5,
+      "slag": 0.8077
+    }
+  },
+  "type_via_classifier_head": {
+    "balanced_acc": 0.6473,
+    "overall_acc": 0.6456
+  },
+  "no_defect_rate": 0.0
+}

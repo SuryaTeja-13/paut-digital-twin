@@ -1,0 +1,29 @@
+# PAUT Digital Twin — Python dependencies
+# Python 3.10+ (developed/tested on 3.14). Install with:  py -3.14 -m pip install -r requirements.txt
+#
+# Grouped by milestone so you only install what each stage needs.
+
+# ── Milestone 1: preprocessing (Student 1) — needed NOW ─────────────────
+numpy
+pandas
+pillow
+opencv-python
+scikit-image
+matplotlib
+pyyaml
+
+# ── Milestone 3: model / training (Student 2) ──────────────────────────
+torch              # CPU build runs locally; Colab/Kaggle provide a CUDA build
+torchvision
+kymatio            # wavelet scattering. NOTE: kymatio 0.3.0 imports a 3D module
+                   # that uses scipy.special.sph_harm (removed in scipy>=1.16);
+                   # we import the 2D frontend directly to avoid it (see scattering.py).
+albumentations     # optional richer augmentation (not required by current code)
+
+# ── Milestone 3: explainable AI (Student 3)
+# shap
+# grad-cam
+
+# ── Milestone 6: digital twin dashboard (Student 4)
+streamlit
+scikit-learn       # used by scripts/check_separability.py (separability diagnostic)
