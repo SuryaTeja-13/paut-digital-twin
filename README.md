@@ -360,6 +360,25 @@ classifier for defect type (0.88 balanced accuracy).
 Curve: [`data/processed/ablation/ablation_curve.png`](data/processed/ablation/ablation_curve.png)
 Raw numbers: [`data/processed/ablation/ablation_results.csv`](data/processed/ablation/ablation_results.csv)
 
+### Type-classifier data-ablation (the scattering prior in the low-data regime)
+
+The same §5.11 curriculum applied to the **type classifier** (log-scattering + tiny MLP), trained on
+shrinking fractions of the train split, scored on the **full** test split (5 random subsamples per
+fraction, mean ± std). It runs on CPU in minutes because the scattering features are fixed.
+
+| Training data | Balanced acc | porosity | slag |
+|---------------|-------------|----------|------|
+| 100% (735) | 0.880 | 0.863 | 0.897 |
+| 50% (368) | 0.828 | 0.785 | 0.872 |
+| 25% (184) | 0.786 | 0.755 | 0.818 |
+| 10% (74) | **0.721** | 0.665 | 0.777 |
+
+**Finding:** accuracy degrades *gracefully* and stays **well above chance (0.50)** even at 10% of the
+data (74 images → 0.72). This is the small-data robustness the fixed wavelet-scattering prior is
+chosen for. Reproduce: `py -3.14 -m scripts.ablation_type_classifier`.
+
+Curve: [`data/processed/ablation/type_clf_ablation.png`](data/processed/ablation/type_clf_ablation.png)
+
 ---
 
 ## Run on a different machine / the cloud

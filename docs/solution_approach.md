@@ -304,6 +304,12 @@ confirming it regularizes in the low-data regime that is realistic for PAUT. Wit
 U-Net overtakes it (the fusion complexity is no longer worth it). Both classification heads stayed at
 ~50%, which is *exactly* why type is decided by the standalone scattering classifier instead.
 
+The same curriculum applied to the **type classifier** (log-scattering + tiny MLP) shows it degrades
+*gracefully* and stays well above chance as data shrinks — **0.88 → 0.83 → 0.79 → 0.72** at
+100 / 50 / 25 / 10 % of the train split (still 0.72 on just 74 images). This is the small-data
+robustness the fixed scattering prior is chosen for. (`scripts/ablation_type_classifier.py`;
+curve at `data/processed/ablation/type_clf_ablation.png`.)
+
 ---
 
 ## 10. Engineering conventions (what makes it robust)
