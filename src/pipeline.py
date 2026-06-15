@@ -99,6 +99,9 @@ class Pipeline:
         result = {
             "image": os.path.basename(image_path),
             "patch": patch, "seg": seg, "seg_prob": seg_prob,
+            # the exact mask characterization ran on (foreground relabeled to the
+            # image-level type) — lets the dashboard outline ONE defect per card.
+            "char_mask": char_mask,
             # PRIMARY type = scattering-feature classifier (~0.80 balanced, porosity ~0.79).
             "defect_type": summary["dominant_type"],
             "type_method": type_method, "type_confidence": type_conf,
@@ -134,7 +137,7 @@ class Pipeline:
 def _json_safe(result: dict) -> dict:
     """Drop big arrays so the result is JSON-serialisable (defects.json)."""
     keep = {k: v for k, v in result.items()
-            if k not in ("patch", "seg", "seg_prob", "xai", "meta")}
+            if k not in ("patch", "seg", "seg_prob", "char_mask", "xai", "meta")}
     if "xai" in result:
         keep["xai"] = {k: v for k, v in result["xai"].items() if k not in ("cam", "attention")}
     return keep

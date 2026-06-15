@@ -68,14 +68,40 @@ def heat_fig(patch, heat, title):
     return fig
 
 
-def defect_crop_fig(patch, seg, d):
+def _instance_mask(inst_src, d):
+    """Boolean mask of ONLY this defect's connected component.
+
+    Cards crop a padded box around a defect, so a neighbouring defect can fall in
+    the same window. We isolate the one this card describes by matching its stored
+    bounding box (exact, unique per component); centroid-hit is the fallback.
+    """
+    from skimage.measure import label, regionprops
+    lbl = label(inst_src > 0)
+    target = tuple(d["bbox_px"])
+    for region in regionprops(lbl):
+        if tuple(region.bbox) == target:
+            return lbl == region.label
+    cx, cy = d["centroid_px"]                       # (col, row)
+    ry = min(int(round(cy)), lbl.shape[0] - 1)
+    rx = min(int(round(cx)), lbl.shape[1] - 1)
+    cid = lbl[ry, rx]
+    return (lbl == cid) if cid > 0 else (inst_src > 0)
+
+
+def defect_crop_fig(patch, inst_src, d):
     r0, c0, r1, c1 = d["bbox_px"]
-    pad = 8
+    pad = 10
     r0, c0 = max(0, r0 - pad), max(0, c0 - pad)
     r1, c1 = min(patch.shape[0], r1 + pad), min(patch.shape[1], c1 + pad)
+    this = _instance_mask(inst_src, d)
+    others = (inst_src > 0) & ~this                 # neighbouring defects, if any
     fig, ax = _square((2.4, 2.4))
     ax.imshow(patch[r0:r1, c0:c1], cmap="gray", vmin=0, vmax=1)
-    ax.contour((seg[r0:r1, c0:c1] > 0), levels=[0.5], colors="red", linewidths=0.8)
+    if others[r0:r1, c0:c1].any():                  # context: faint dashed cyan
+        ax.contour(others[r0:r1, c0:c1], levels=[0.5], colors="#33ddff",
+                   linewidths=0.6, linestyles="dashed")
+    ax.contour(this[r0:r1, c0:c1], levels=[0.5], colors="red", linewidths=1.2)
+    ax.set_title(f"#{d['id']}", color="red", fontsize=11, pad=2)
     return fig
 
 
@@ -181,10 +207,15 @@ with tab_defects:
                            json.dumps(_json_safe(res), indent=2),
                            file_name=f"{os.path.splitext(res['image'])[0]}_defects.json")
         st.markdown("**Defect cards**")
+        st.caption("Each card outlines **one** defect in **solid red** — the one whose numbers are "
+                   "shown below it. A **faint dashed cyan** outline is a *neighbouring* defect that "
+                   "happens to sit in the same crop (it has its own card). Match a card to the "
+                   "weld map above by its **#id**.")
+        inst_src = res.get("char_mask", res["seg"])
         cols = st.columns(min(4, len(defects)))
         for i, d in enumerate(defects):
             with cols[i % len(cols)]:
-                st.pyplot(defect_crop_fig(res["patch"], res["seg"], d))
+                st.pyplot(defect_crop_fig(res["patch"], inst_src, d))
                 st.markdown(
                     f"**#{d['id']} · {d['type']}** "
                     f"<span style='color:{SEVERITY_COLOR[d['severity']]}'>●</span> {d['severity']}<br>"
