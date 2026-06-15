@@ -4,6 +4,10 @@
 # build artifact (a zip of the repo itself — regenerable)
 paut-digital-twin.zip
 
+# PPT decks + their build assets are personal deliverables (kept in Downloads), not repo content
+ppt_build/
+*.pptx
+
 # python bytecode / envs
 __pycache__/
 *.pyc
