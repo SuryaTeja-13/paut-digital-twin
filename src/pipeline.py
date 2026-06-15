@@ -45,7 +45,7 @@ class Pipeline:
         self.char = _load(characterize_cfg)
         self.twin = _load(twin_cfg)
         self.classes = self.ckpt_cfg["data"]["classes"]
-        # scattering-feature type classifier (reliable porosity-vs-slag, ~0.80
+        # scattering-feature type classifier (reliable porosity-vs-slag, ~0.88
         # balanced). Optional: fall back to seg-derived type if not present.
         self.type_clf = None
         tc_path = "checkpoints/type_classifier.pkl"
@@ -102,7 +102,7 @@ class Pipeline:
             # the exact mask characterization ran on (foreground relabeled to the
             # image-level type) — lets the dashboard outline ONE defect per card.
             "char_mask": char_mask,
-            # PRIMARY type = scattering-feature classifier (~0.80 balanced, porosity ~0.79).
+            # PRIMARY type = scattering-feature classifier (~0.88 balanced, porosity ~0.86).
             "defect_type": summary["dominant_type"],
             "type_method": type_method, "type_confidence": type_conf,
             # the neural classification head's opinion, diagnostic only (weak head).

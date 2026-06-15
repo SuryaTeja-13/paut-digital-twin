@@ -49,7 +49,7 @@ porosity folder held 256 `GS…`-named files that were actually slag (byte-ident
 which made the two classes contradictory and pinned type-classification at 50%; those were removed
 and genuine porosity images were added to reach 525 each. `scripts/check_contamination.py` confirms
 the folders are clean (no cross-folder duplicates). Defect type (porosity vs slag) is decided by a
-scattering-feature classifier (~0.80 balanced accuracy). Class-weighting stays enabled
+scattering-feature classifier (~0.88 balanced accuracy). Class-weighting stays enabled
 (`configs/model.yaml` → `train.class_weighting`) as a safeguard.
 
 ## Milestone 1 — Preprocessing (done)
@@ -283,9 +283,14 @@ py -3.14 -m tests.test_xai
 ## Defect type — scattering classifier
 
 The U-Net detects defects well but types them poorly (porosity ↔ slag confusion; porosity type was
-~0.50 = chance). Type is a whole-image texture property, so a **logistic regression on the global
-Wavelet-Scattering vector** decides porosity-vs-slag instead — **test balanced 0.80 (porosity 0.79,
-slag 0.82)**. The pipeline uses **segmentation for detection** + **scattering classifier for type**.
+~0.50 = chance). Type is a whole-image texture property, so a **small classifier on the global
+Wavelet-Scattering vector** decides porosity-vs-slag instead. Using **log-scattering** (the standard
+Mallat/Bruna log-renormalisation) and a **tiny one-hidden-layer MLP** — i.e. the "scattering + small
+neural classifier" of the IWSCN reference paper — it reaches **test balanced 0.88 (porosity 0.86,
+slag 0.90)**, up from 0.80 for a plain logistic regression. Selection is by 5-fold CV on the train
+split; the test split is scored once (CV 0.87 ≈ test 0.88, so no overfitting). The scattering filters
+stay fixed (J=2, L=8, order=2) — **only the small classifier changed, the U-Net is untouched**. The
+pipeline uses **segmentation for detection** + **scattering classifier for type**.
 
 ```bash
 py -3.14 -m src.models.type_classifier --out checkpoints/type_classifier.pkl   # trains on CPU in minutes
@@ -350,7 +355,7 @@ SCN-Attention U-Net vs plain Attention U-Net baseline across data fractions (60 
 that is typical of PAUT inspection. As data increases, the plain U-Net surpasses SCN — the added
 fusion complexity becomes a burden once sufficient data is available. Both models' classification
 heads stay near chance (~50%), confirming the decision to use the independent scattering-feature
-classifier for defect type (0.80 balanced accuracy).
+classifier for defect type (0.88 balanced accuracy).
 
 Curve: [`data/processed/ablation/ablation_curve.png`](data/processed/ablation/ablation_curve.png)
 Raw numbers: [`data/processed/ablation/ablation_results.csv`](data/processed/ablation/ablation_results.csv)

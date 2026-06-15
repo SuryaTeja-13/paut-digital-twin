@@ -261,8 +261,9 @@ with tab_details:
              f"**{res.get('type_method','—')}** "
              f"(confidence {res['type_confidence']:.2f})." if res.get("type_confidence") is not None
              else f"- **Primary type: `{res['defect_type']}`** (segmentation-derived).")
-    st.write("  The **scattering classifier** uses whole-image wavelet-texture features — it reaches "
-             "**~0.80 balanced** accuracy (porosity ~0.79, slag ~0.82), fixing the porosity↔slag "
+    st.write("  The **scattering classifier** uses whole-image wavelet-texture features "
+             "(log-scattering + a tiny MLP, the IWSCN recipe) — it reaches "
+             "**~0.88 balanced** accuracy (porosity ~0.86, slag ~0.90), fixing the porosity↔slag "
              "confusion the per-pixel approach had (porosity was ~0.50).")
     st.write(f"- *Diagnostic only:* the neural **classification head** says "
              f"`{res['classifier_type']}` (prob {res['classifier_prob']:.2f}) — weaker, not used.")

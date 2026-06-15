@@ -195,9 +195,14 @@ the right small-sample texture descriptor. So:
 
 1. Extract the **global scattering vector** (mean + std of scattering coefficients over space) for
    each image (`scatter_features`).
-2. Standardize, then fit a **logistic regression** with balanced class weights.
-3. Result: **test balanced accuracy ≈ 0.80** (porosity 0.79, slag 0.82) — versus ~0.54 for the
-   neural head. Trains on **CPU in minutes** (no GPU, no checkpoint needed).
+2. **Log-scattering renormalise** (log of the coefficients — the standard Mallat/Bruna step),
+   standardise, then fit a **tiny one-hidden-layer MLP** — i.e. the "scattering + small neural
+   classifier" of the IWSCN reference paper. (A plain logistic regression gives ~0.80; the
+   log-renormalisation + small MLP lifts it to ~0.88.)
+3. Result: **test balanced accuracy ≈ 0.88** (porosity 0.86, slag 0.90) — versus ~0.54 for the
+   neural head. Selected by 5-fold CV on the train split (CV 0.87 ≈ test 0.88, so it generalises,
+   not overfit). The scattering filters stay fixed (J=2) — **only the small classifier changed, the
+   U-Net architecture is untouched**. Trains on **CPU in minutes** (no GPU, no checkpoint needed).
 
 **Division of labour:** the **U-Net does detection** (where the defect is), the **scattering
 classifier does type** (porosity vs slag). The pipeline relabels all detected foreground pixels to
@@ -331,7 +336,7 @@ U-Net overtakes it (the fusion complexity is no longer worth it). Both classific
 | Limitation | Cause | Fix / status |
 |------------|-------|--------------|
 | Porosity segmentation Dice ~0.64 | Pseudo-labels reduce porosity to tiny bright cores | Hand-label ~30–50 val images (biggest lever) |
-| Neural classification head ~50% | Global-average pooling discards shape | Routed around via scattering classifier (0.80) |
+| Neural classification head ~50% | Global-average pooling discards shape | Routed around via scattering classifier (0.88) |
 | Severity / pass-fail thresholds | No calibrated standard yet | Tunable placeholders; calibrate to ISO 5817 / ASME |
 | `pixel_to_mm` unknown | Scale not provided | Defaults to 1.0 (pixels); a real value plugs in, no code change |
 

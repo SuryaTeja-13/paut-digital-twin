@@ -16,10 +16,10 @@
     "mean_fg_dice": 0.568
   },
   "type_via_scattering_clf": {
-    "balanced_acc": 0.804,
+    "balanced_acc": 0.88,
     "per_class": {
-      "porosity": 0.7875,
-      "slag": 0.8205
+      "porosity": 0.8625,
+      "slag": 0.8974
     }
   },
   "type_via_segmentation": {
