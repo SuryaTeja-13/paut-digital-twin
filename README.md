@@ -265,7 +265,7 @@ py -3.14 -m src.xai.run --config configs/xai.yaml --split test
 Outputs a 4-panel overlay (amplitude · Grad-CAM · attention · GT mask) and a per-image
 JSON with the trust score, in `data/processed/xai/` and `data/processed/xai_overlays/`.
 
-On a 16-image validation sample: mean **trust 0.92**, deletion AUC 0.12 (lower=better), insertion AUC
+On a 16-image validation sample: mean **trust 0.91**, deletion AUC 0.12 (lower=better), insertion AUC
 0.86 (higher=better), pointing-game 1.00 — the Grad-CAM explanations are faithful. (Reproduce:
 `py -3.14 -m src.xai.run --config configs/xai.yaml --split val --limit 16`; writes
 `data/processed/xai/_summary.csv`.)

@@ -246,7 +246,7 @@ Each explanation is **matched to the head it explains**:
   (higher=better), and **pointing-game** → combined into a single **trust score** per explanation.
   For segmentation we use *region-based* scoring so a tiny defect isn't swamped by background.
 
-**Result on a 16-image validation sample: mean trust ≈ 0.92** (deletion 0.12, insertion 0.86,
+**Result on a 16-image validation sample: mean trust ≈ 0.91** (deletion 0.12, insertion 0.86,
 pointing-game 1.00) — the Grad-CAM explanations are genuinely faithful, not decorative.
 
 ---

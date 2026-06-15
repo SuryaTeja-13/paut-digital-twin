@@ -256,6 +256,31 @@ with tab_details:
                 "--save data/processed/model_metrics.json` to populate this.")
     st.divider()
 
+    # ---- Explanation faithfulness (validation sample) ----
+    st.markdown("### 🧪 Explanation faithfulness (validation sample)")
+    st.caption("How well the Grad-CAM explanations reflect the model, averaged over a validation "
+               "sample — separate from the single-image trust shown in the Explainability tab.")
+    xsum = "data/processed/xai/_summary.csv"
+    if os.path.exists(xsum):
+        xdf = pd.read_csv(xsum)
+        ph = xdf["pointing_hit"].dropna()
+        f1, f2, f3, f4 = st.columns(4)
+        f1.metric("Mean trust score", f"{xdf['trust_score'].mean():.2f}",
+                  help="overall explanation faithfulness (higher = better)")
+        f2.metric("Deletion AUC", f"{xdf['deletion_auc'].mean():.2f}",
+                  help="lower = better — hiding the highlighted region should drop the prediction")
+        f3.metric("Insertion AUC", f"{xdf['insertion_auc'].mean():.2f}",
+                  help="higher = better — restoring that region should recover the prediction")
+        f4.metric("Pointing-game", f"{ph.mean()*100:.0f}%" if len(ph) else "—",
+                  help="how often the heatmap's peak lands on the true defect")
+        split = xdf["split"].iloc[0] if "split" in xdf.columns and len(xdf) else "val"
+        st.caption(f"over {len(xdf)} {split} images · ⚠️ pointing-game scored against Stage-1 "
+                   "pseudo-labels, so treat as indicative until hand-labels exist.")
+    else:
+        st.info("Run `py -3.14 -m src.xai.run --config configs/xai.yaml --split val --limit 16` "
+                "to populate this.")
+    st.divider()
+
     st.markdown("**How the type is decided**")
     st.write(f"- **Primary (shown everywhere): `{res['defect_type']}`** via the "
              f"**{res.get('type_method','—')}** "
