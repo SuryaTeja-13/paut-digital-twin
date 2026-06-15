@@ -265,8 +265,10 @@ py -3.14 -m src.xai.run --config configs/xai.yaml --split test
 Outputs a 4-panel overlay (amplitude · Grad-CAM · attention · GT mask) and a per-image
 JSON with the trust score, in `data/processed/xai/` and `data/processed/xai_overlays/`.
 
-On val (8 images): mean **trust 0.85**, deletion AUC 0.19 (lower=better), insertion AUC 0.87
-(higher=better), pointing-game 0.88 — the Grad-CAM explanations are faithful.
+On a 16-image validation sample: mean **trust 0.92**, deletion AUC 0.12 (lower=better), insertion AUC
+0.86 (higher=better), pointing-game 1.00 — the Grad-CAM explanations are faithful. (Reproduce:
+`py -3.14 -m src.xai.run --config configs/xai.yaml --split val --limit 16`; writes
+`data/processed/xai/_summary.csv`.)
 
 > SHAP on the classification head (architecture.md §6.1) is left as an optional add — the
 > classification head is the weak one we route around (we use seg-derived type), and SHAP adds a
