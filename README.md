@@ -306,8 +306,9 @@ py -3.14 -m src.models.evaluate --ckpt checkpoints/scn_attn_unet_best.pt --split
 Reports per-class Dice/IoU, classification accuracy + balanced accuracy + confusion matrix,
 and the near-empty-mask ("no defect") rate.
 
-Current checkpoint (val): foreground Dice **0.72** (porosity 0.64, slag 0.80); seg-derived type
-balanced accuracy **0.73 val / 0.76 test**.
+Current checkpoint (test split, 158 images): foreground Dice **0.57** (porosity 0.45, slag 0.68);
+seg-derived type balanced accuracy **0.65** — which is exactly why the **scattering classifier**
+(0.88) is used for type instead. The neural classification head is also weak (~0.65 balanced).
 
 ---
 

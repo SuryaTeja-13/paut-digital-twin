@@ -151,7 +151,8 @@ def main(argv=None):
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"trainable params: {n_params/1e6:.2f}M")
     criterion = MultiTaskLoss(seg_classes=seg_classes, **cfg["loss"])
-    # class weighting for the imbalanced classifier (269 porosity / 525 slag).
+    # class weighting for the classifier (dataset is 525/525 balanced now, so this
+    # is a harmless safeguard; computed from the actual train-split frequencies).
     if cfg["train"].get("class_weighting", True) and not overfit:
         labels = [train_ds.cls_to_idx[c] for c in train_ds.df["class"]]
         counts = np.bincount(labels, minlength=len(classes)).astype(np.float32)

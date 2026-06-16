@@ -102,7 +102,7 @@ def main():
     results = {}
     for J in (2, 3):
         results[J] = run_for_J(J)
-    print(f"\n{'='*64}\nSUMMARY  (current production = 0.80 test)\n{'='*64}")
+    print(f"\n{'='*64}\nSUMMARY  (this search selected the production model: log+MLP = 0.88 test)\n{'='*64}")
     for J, (name, cv, test) in results.items():
         print(f"  J={J}: CV {cv:.3f} | TEST {test:.3f}  via  {name}")
 

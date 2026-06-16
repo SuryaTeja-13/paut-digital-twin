@@ -90,8 +90,8 @@ class MultiTaskLoss(nn.Module):
         self.tversky_weight = tversky_weight
         self.t_alpha, self.t_beta, self.t_gamma = tversky_alpha, tversky_beta, tversky_gamma
         self.include_bg = include_background_in_dice
-        # set by the trainer for imbalanced classes (269 porosity / 525 slag).
-        # a (n_classes,) tensor weighting the classification cross-entropy.
+        # set by the trainer; a safeguard for class imbalance (dataset is 525/525
+        # balanced now). a (n_classes,) tensor weighting the classification cross-entropy.
         self.cls_weight = None
 
     def forward(self, out, mask, cls_target):

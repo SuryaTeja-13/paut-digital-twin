@@ -4,7 +4,7 @@ check_separability.py — quick test of whether porosity vs slag is separable.
 Extracts the global Wavelet-Scattering feature vector (mean+std over space) for
 each image and fits a simple Logistic Regression (the reference paper's small-
 sample recipe), evaluating on the val split. Reports BALANCED accuracy and a
-confusion matrix because the corrected dataset is imbalanced (269 / 525).
+confusion matrix; the dataset is now balanced (525 / 525).
 
 Run AFTER build_dataset.py:
     py -3.14 scripts/check_separability.py

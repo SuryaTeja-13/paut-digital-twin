@@ -341,8 +341,8 @@ curve at `data/processed/ablation/type_clf_ablation.png`.)
 
 | Limitation | Cause | Fix / status |
 |------------|-------|--------------|
-| Porosity segmentation Dice ~0.64 | Pseudo-labels reduce porosity to tiny bright cores | Hand-label ~30–50 val images (biggest lever) |
-| Neural classification head ~50% | Global-average pooling discards shape | Routed around via scattering classifier (0.88) |
+| Porosity segmentation Dice ~0.45 (test) | Pseudo-labels reduce porosity to tiny bright cores | Hand-label ~30–50 val images (biggest lever) |
+| Neural classification head ~0.65 balanced | Global-average pooling discards shape | Routed around via scattering classifier (0.88) |
 | Severity / pass-fail thresholds | No calibrated standard yet | Tunable placeholders; calibrate to ISO 5817 / ASME |
 | `pixel_to_mm` unknown | Scale not provided | Defaults to 1.0 (pixels); a real value plugs in, no code change |
 
