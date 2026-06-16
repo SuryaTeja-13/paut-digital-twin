@@ -23,3 +23,14 @@ Thumbs.db
 
 # scratch / temp
 scratch_*.py
+
+# transient, regenerable outputs (only the _summary.csv aggregate is tracked)
+data/processed/xai/*.json
+data/processed/xai_overlays/
+
+# PPT build tooling — personal-deliverable generators, kept local (decks live in Downloads)
+scripts/build_student*_pptx.py
+scripts/_inspect_pptx.py
+scripts/generate_dashboard_figs.py
+scripts/generate_xai_panel.py
+scripts/prep_student2_assets.py
