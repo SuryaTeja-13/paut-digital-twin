@@ -1,14 +1,9 @@
-# Everything meaningful is tracked (code, data/raw, data/processed, checkpoints,
-# docs). Only auto-generated junk is excluded below.
+# Auto-generated / environment files excluded from version control.
 
 # build artifact (a zip of the repo itself — regenerable)
 paut-digital-twin.zip
 
-# PPT decks + their build assets are personal deliverables (kept in Downloads), not repo content
-ppt_build/
-*.pptx
-
-# python bytecode / envs
+# python bytecode / environments
 __pycache__/
 *.pyc
 .venv/
@@ -24,13 +19,6 @@ Thumbs.db
 # scratch / temp
 scratch_*.py
 
-# transient, regenerable outputs (only the _summary.csv aggregate is tracked)
+# transient, regenerable XAI outputs (the _summary.csv aggregate is tracked)
 data/processed/xai/*.json
 data/processed/xai_overlays/
-
-# PPT build tooling — personal-deliverable generators, kept local (decks live in Downloads)
-scripts/build_student*_pptx.py
-scripts/_inspect_pptx.py
-scripts/generate_dashboard_figs.py
-scripts/generate_xai_panel.py
-scripts/prep_student2_assets.py
