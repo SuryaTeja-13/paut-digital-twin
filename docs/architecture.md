@@ -83,8 +83,8 @@ Four cooperating layers, one per student, with clean interfaces between them:
                  ▼                        ▼
    Characterization JSON          Explainable AI  ── Student 3 ──
    (per-defect metrics)           (Grad-CAM/++ on decoder,
-                 │                  SHAP on class head,
-                 │                  attention maps intrinsic)
+                 │                  intrinsic attention maps,
+                 │                  deletion/insertion faithfulness)
                  ▼                        │
  ┌───────────────────────────────────────▼───────────┐
  │  Digital Twin + Dashboard            ── Student 4 ──│
@@ -221,27 +221,28 @@ The sir asked you to pick the XAI that *aligns with this specific model* — not
 ### 6.1 Match the method to the head
 **For the segmentation head → Grad-CAM / Grad-CAM++ (and Seg-Grad-CAM) on the last decoder convolutional block.** Evidence: a crack-tip *segmentation* study using a U-Net found gradient-based CAMs (Grad-CAM, Grad-CAM++) significantly more *correct, complete, and compact* than gradient-free CAMs (Score-CAM, Eigen-CAM, Ablation-CAM); Grad-CAM applied to a U-Net's final layer reliably highlights the true target region. Your domain (cracks/porosity/slag) is essentially the same imaging-defect-segmentation setting, so this transfers directly. Grad-CAM also needs **no retraining and no architecture change** and works on any differentiable CNN — zero risk to your accuracy.
 
-**For the classification head → Grad-CAM++ for spatial attribution + SHAP for feature attribution.** SHAP is well-suited to a *classification* CNN/MLP and to the handcrafted shape features feeding severity (it tells you "porosity area contributed +0.3 toward the 'porosity' class"). Use DeepSHAP/GradientSHAP on the classification branch.
+**For the classification head → Grad-CAM++ for spatial attribution.** SHAP was *considered* here for feature attribution (DeepSHAP/GradientSHAP) — it is well-suited to a *classification* CNN/MLP and to the handcrafted shape features feeding severity (it would tell you "porosity area contributed +0.3 toward the 'porosity' class"). **It was not implemented:** the neural classification head is the weak one we deliberately route around (defect *type* comes from the separate scattering classifier, 0.88 balanced), so attributing a head we don't rely on adds a heavy dependency for little value. The implemented XAI is gradient CAMs on the segmentation head plus intrinsic attention maps.
 
 **Intrinsic, free explainability → your CBAM spatial-attention maps and Attention-Gate coefficients.** Your model *already* produces attention maps. Surface them as a first-class explanation; they require zero extra computation and are faithful by construction.
 
 **Secondary / sanity-check methods → Integrated Gradients and SmoothGrad.** Use them to corroborate Grad-CAM (agreement across methods = trustworthy explanation). NeuroXAI-style multi-method frameworks do exactly this for U-Net segmentation.
 
 ### 6.2 What to avoid, and why (write this in the report — it shows judgment)
-- **SHAP on the segmentation mask:** SHAP is *incompatible with mask-based, multi-channel outputs* (the same reason it fails on Mask-R-CNN/YOLO). So SHAP is wrong for the seg head, right for the class head.
+- **SHAP on the segmentation mask:** SHAP is *incompatible with mask-based, multi-channel outputs* (the same reason it fails on Mask-R-CNN/YOLO) — so it was never an option for the seg head. It was right *in principle* for the class head, but we did not implement it there either (we route around that head — see §6.1).
 - **LIME:** superpixel perturbation is poor for fine speckle/texture in TFM and is unstable run-to-run — not your primary tool.
 - **Pure occlusion saliency:** correct but slow and coarse; keep only as an optional cross-check.
 
 ### 6.3 Faithfulness checks (the "standards" the sir wants)
 Don't just produce pretty heatmaps — *quantify* them: deletion/insertion AUC, and pointing-game accuracy against the ground-truth mask. Report a single trust score per explanation so Student 4's dashboard can display confidence. This is what makes the XAI "adhere to standards."
 
-**Selection summary (one table for the report):**
-| Model part | Primary XAI | Secondary | Rejected (why) |
+**Selection summary (one table for the report).** "Implemented" = what actually runs in `src/xai/`; "Considered" = evaluated in the design but not built.
+| Model part | Implemented XAI | Considered / not built | Rejected (why) |
 |---|---|---|---|
 | Segmentation head | Grad-CAM / Grad-CAM++ / Seg-Grad-CAM on last decoder conv | Integrated Gradients | SHAP (no mask support) |
-| Classification head | Grad-CAM++ + SHAP | SmoothGrad | LIME (unstable on texture) |
+| Classification head | (head routed around — not explained) | Grad-CAM++, SHAP, SmoothGrad | LIME (unstable on texture) |
 | Fusion/attention | CBAM + Attention-Gate maps (intrinsic) | — | — |
-| Severity features | SHAP on shape features | — | Occlusion (too slow) |
+| Severity features | (reported as engineering measurements) | SHAP on shape features | Occlusion (too slow) |
+| Faithfulness | Deletion/insertion AUC + pointing-game → trust score | — | — |
 
 ---
 
@@ -275,7 +276,7 @@ A thin Python service: `image → preprocess (S1) → model (S2) → characteriz
 ### 8.1 Environment (do this first)
 1. Install Python 3.10+, VS Code, the Python extension, and Git.
 2. `python -m venv .venv` → activate it.
-3. `pip install torch torchvision kymatio scikit-image opencv-python albumentations numpy pandas matplotlib shap grad-cam streamlit` → freeze to `requirements.txt`.
+3. `pip install torch torchvision kymatio scikit-image opencv-python albumentations numpy pandas matplotlib grad-cam streamlit` → freeze to `requirements.txt`. (`shap` was considered for the class head but not used — see §6.1; it stays commented out in `requirements.txt`.)
 4. `git init`; commit early and often.
 
 ### 8.2 Repository structure (a deliverable in itself)
@@ -286,7 +287,7 @@ paut-digital-twin/
 │   ├── data/             # S1: preprocessing, color→amplitude, manifest, pseudo-labels
 │   ├── models/           # S2: scattering branch, attention unet, fusion(CBAM), heads
 │   ├── characterize/     # S2: blobs, PCA, severity
-│   ├── xai/              # S3: gradcam, shap, faithfulness metrics
+│   ├── xai/              # S3: gradcam, intrinsic attention, faithfulness metrics
 │   ├── twin/             # S4: weld model, health index, RUL
 │   ├── dashboard/        # S4: streamlit app
 │   └── pipeline.py       # the one-click integration callable
