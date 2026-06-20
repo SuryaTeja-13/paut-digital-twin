@@ -51,7 +51,7 @@ train:
   grad_clip: 1.0
   amp: false                         # mixed precision: set true on GPU for speed
   early_stop_patience: 25            # stop if val Dice hasn't improved in N epochs
-  class_weighting: true              # weight cls loss by inverse class frequency (269/525 imbalance)
+  class_weighting: true              # weight cls loss by inverse class frequency (dataset is 525/525 balanced; kept as a safeguard)
   ckpt_dir: checkpoints
   ckpt_name: scn_attn_unet
 

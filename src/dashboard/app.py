@@ -5,8 +5,8 @@ Upload a TFM image (color OR grayscale) -> the one-click pipeline runs
 (preprocess -> model -> characterize -> XAI -> health) -> the twin shows results
 across tabs: Overview/Health, Explainability, Defects, and Details.
 
-Defect TYPE shown is the SEGMENTATION-derived type (the reliable signal, ~0.76).
-The classification head's opinion is shown only as a labelled diagnostic.
+Defect TYPE shown is from the scattering classifier (the reliable signal, ~0.88 balanced).
+The neural classification head's opinion is shown only as a labelled diagnostic.
 
 Run from the project root:
     py -3.14 -m streamlit run src/dashboard/app.py
@@ -160,7 +160,7 @@ tab_overview, tab_xai, tab_defects, tab_details = st.tabs(
 with tab_overview:
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Health index", f"{h['health_index']:.2f}", help="1.0 = pristine")
-    c2.metric("Defect type", res["defect_type"] or "—", help="segmentation-derived (reliable)")
+    c2.metric("Defect type", res["defect_type"] or "—", help="scattering classifier (~0.88 balanced, reliable)")
     c3.metric("Defects found", h["n_defects"])
     c4.metric("Max severity", summ["max_severity"])
     st.caption(f"severity counts — critical {h['counts']['critical']}, "

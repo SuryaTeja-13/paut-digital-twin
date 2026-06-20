@@ -179,16 +179,18 @@ Cosine LR with warmup; device auto-detected (CPU-runnable, GPU-accelerated). Sav
 checkpoint by **validation foreground-Dice**. Flags for every workflow:
 `--limit N` (CPU smoke-test), `--overfit N` (prove the model *can* learn), `--data-fraction`
 (ablation), `--no-scattering` (baseline), `--ckpt-dir` (never overwrite the production checkpoint).
-Final checkpoint: `checkpoints/scn_attn_unet_best.pt`, val foreground Dice ≈ **0.67–0.72**.
+Final checkpoint: `checkpoints/scn_attn_unet_best.pt` (selected by best validation foreground-Dice);
+test foreground Dice ≈ **0.57** (porosity 0.45, slag 0.68).
 
 ---
 
 ## 5. Defect type — the scattering-feature classifier  (`src/models/type_classifier.py`)
 
 > **Why a separate classifier?** The U-Net *detects* defects well but *types* them poorly — its
-> global-average-pooled classification head mislabels porosity as slag about half the time (it throws
-> away the spatial texture information that distinguishes the two). The ablation confirmed this: the
-> neural head stayed at ~50% (chance) at every data size.
+> global-average-pooled classification head reaches only ~0.65 balanced accuracy on test, and the
+> seg-derived type is no better (~0.65, with porosity mislabelled as slag about half the time — it
+> throws away the spatial texture information that distinguishes the two). In the short data-ablation
+> runs the head sat even lower, near chance (~50%).
 
 Porosity-vs-slag is a **whole-image texture property**, and the fixed scattering transform is exactly
 the right small-sample texture descriptor. So:
@@ -199,7 +201,7 @@ the right small-sample texture descriptor. So:
    standardise, then fit a **tiny one-hidden-layer MLP** — i.e. the "scattering + small neural
    classifier" of the IWSCN reference paper. (A plain logistic regression gives ~0.80; the
    log-renormalisation + small MLP lifts it to ~0.88.)
-3. Result: **test balanced accuracy ≈ 0.88** (porosity 0.86, slag 0.90) — versus ~0.54 for the
+3. Result: **test balanced accuracy ≈ 0.88** (porosity 0.86, slag 0.90) — versus ~0.65 for the
    neural head. Selected by 5-fold CV on the train split (CV 0.87 ≈ test 0.88, so it generalises,
    not overfit). The scattering filters stay fixed (J=2) — **only the small classifier changed, the
    U-Net architecture is untouched**. Trains on **CPU in minutes** (no GPU, no checkpoint needed).
@@ -301,8 +303,10 @@ It writes to `checkpoints/ablation/` so the production checkpoint is never touch
 
 **Finding:** at the **lowest data fraction (10%)** the scattering prior wins (0.541 vs 0.514),
 confirming it regularizes in the low-data regime that is realistic for PAUT. With more data the plain
-U-Net overtakes it (the fusion complexity is no longer worth it). Both classification heads stayed at
-~50%, which is *exactly* why type is decided by the standalone scattering classifier instead.
+U-Net overtakes it (the fusion complexity is no longer worth it). In these short ablation runs both
+classification heads stayed near chance (~50% val accuracy); even the fully-trained production head
+only reaches ~0.65 balanced — which is *exactly* why type is decided by the standalone scattering
+classifier (0.88) instead.
 
 The same curriculum applied to the **type classifier** (log-scattering + tiny MLP) shows it degrades
 *gracefully* and stays well above chance as data shrinks — **0.88 → 0.83 → 0.79 → 0.72** at

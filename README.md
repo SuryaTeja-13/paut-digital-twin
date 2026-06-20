@@ -231,10 +231,11 @@ severity), a `_summary.csv`, and annotated overlays in `data/processed/char_over
 
 ### Key points
 
-- **Defect type is seg-derived** (which segmentation class-channel owns the instance) — the
-  segmentation distinguishes porosity/slag (~0.73–0.76 balanced acc) far better than the
-  global-pooled classification head (~0.54). This refines decision §11; the classification head
-  is kept and reported, with "improve its pooling" logged as a future tuning item.
+- **Defect type comes from the scattering classifier** (~0.88 balanced), applied at image level;
+  the segmentation supplies *detection* (where the defect is). The two in-network neural routes —
+  seg-derived type and the global-pooled classification head — are both weaker (~0.65 balanced
+  each), so they are kept and reported only, with "improve its pooling" logged as a future tuning
+  item. This refines decision §11.
 - **Multi-defect**: connected components → one characterization record each.
 - **pixel_to_mm defaults to 1.0** → values are in pixels; set the real scale later (no code change).
   Scale-free fields (orientation, aspect ratio, eccentricity) are already correct.
@@ -271,7 +272,7 @@ On a 16-image validation sample: mean **trust 0.91**, deletion AUC 0.12 (lower=b
 `data/processed/xai/_summary.csv`.)
 
 > SHAP on the classification head (architecture.md §6.1) is left as an optional add — the
-> classification head is the weak one we route around (we use seg-derived type), and SHAP adds a
+> classification head is the weak one we route around (type comes from the scattering classifier), and SHAP adds a
 > heavy dependency. The gradient methods above are the doc's *primary* choice for the segmentation
 > head, which is the strong one.
 
@@ -356,9 +357,10 @@ SCN-Attention U-Net vs plain Attention U-Net baseline across data fractions (60 
 **Key finding:** At 10% of training data the SCN model outperforms the plain baseline (0.541 vs
 0.514), showing the fixed wavelet-scattering prior acts as a regulariser in the low-data regime
 that is typical of PAUT inspection. As data increases, the plain U-Net surpasses SCN — the added
-fusion complexity becomes a burden once sufficient data is available. Both models' classification
-heads stay near chance (~50%), confirming the decision to use the independent scattering-feature
-classifier for defect type (0.88 balanced accuracy).
+fusion complexity becomes a burden once sufficient data is available. In these short ablation runs
+(60 epochs each) both models' classification heads stayed near chance (~50% val accuracy); even the
+fully-trained production head only reaches ~0.65 balanced — both far below the independent
+scattering-feature classifier (0.88 balanced), which is why type is decided by it.
 
 Curve: [`data/processed/ablation/ablation_curve.png`](data/processed/ablation/ablation_curve.png)
 Raw numbers: [`data/processed/ablation/ablation_results.csv`](data/processed/ablation/ablation_results.csv)
