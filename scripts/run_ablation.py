@@ -89,8 +89,11 @@ def main():
     ax[0].set_title("Segmentation: val dice_fg vs training-data size")
     ax[1].set_title("Classification: val accuracy vs training-data size")
     for a in ax:
-        a.set_xlabel("training data used (%)"); a.grid(alpha=0.3); a.legend()
-    ax[0].set_ylabel("val dice_fg"); ax[1].set_ylabel("val cls acc")
+        a.set_xlabel("training data used (%)")
+        a.grid(alpha=0.3)
+        a.legend()
+    ax[0].set_ylabel("val dice_fg")
+    ax[1].set_ylabel("val cls acc")
     fig.tight_layout()
     png = os.path.join(args.out, "ablation_curve.png")
     fig.savefig(png, dpi=120)

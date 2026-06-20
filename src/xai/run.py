@@ -37,9 +37,11 @@ def load_config(path):
 
 def overlay_panel(patch, cam, att, att_name, gt_mask, out_path, title, alpha):
     fig, ax = plt.subplots(1, 4, figsize=(15, 4))
-    ax[0].imshow(patch, cmap="gray", vmin=0, vmax=1); ax[0].set_title("amplitude")
+    ax[0].imshow(patch, cmap="gray", vmin=0, vmax=1)
+    ax[0].set_title("amplitude")
     ax[1].imshow(patch, cmap="gray", vmin=0, vmax=1)
-    ax[1].imshow(cam, cmap="jet", alpha=alpha); ax[1].set_title("Seg-Grad-CAM")
+    ax[1].imshow(cam, cmap="jet", alpha=alpha)
+    ax[1].set_title("Seg-Grad-CAM")
     ax[2].imshow(patch, cmap="gray", vmin=0, vmax=1)
     if att is not None:
         ax[2].imshow(att, cmap="jet", alpha=alpha)

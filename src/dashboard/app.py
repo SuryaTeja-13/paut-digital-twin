@@ -22,7 +22,6 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
@@ -243,9 +242,9 @@ with tab_details:
         a3.metric("Missed-defect rate", f"{m['no_defect_rate']*100:.0f}%",
                   help="images wrongly called 'no defect'")
         pc = type_block["per_class"]
-        st.write(f"- **Per-class type accuracy (scattering classifier):** "
+        st.write("- **Per-class type accuracy (scattering classifier):** "
                  + ", ".join(f"{k} {v:.2f}" for k, v in pc.items()) + ".")
-        st.write(f"- **Per-class Dice:** "
+        st.write("- **Per-class Dice:** "
                  + ", ".join(f"{k} {v:.2f}" for k, v in m['segmentation']['dice'].items()
                              if k != "background"))
         st.caption(f"checkpoint `{m['checkpoint']}` · {m['split']} split · {m['n_images']} images · "

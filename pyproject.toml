@@ -1,0 +1,17 @@
+# Project tooling config. The code follows PEP 8, enforced by Ruff.
+# Run:  py -3.14 -m ruff check .
+[tool.ruff]
+line-length = 120          # modern PEP 8 team limit (79 is the minimum; 100-120 widely used)
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "W", "F"]   # pycodestyle errors/warnings + pyflakes
+
+[tool.ruff.lint.per-file-ignores]
+# The two PDF-rendering utilities use compact state-machine parser loops
+# (`yield (...); i += 1; continue`). Splitting every line hurts readability there
+# more than it helps, so the semicolon rule is relaxed for these helpers only.
+"scripts/md_to_pdf.py" = ["E702"]
+"scripts/make_solution_pdf.py" = ["E702"]
+# Tests use compact `x = f(); assert x` setup lines — readable in that context.
+"tests/*" = ["E702"]

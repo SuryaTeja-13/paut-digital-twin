@@ -40,7 +40,6 @@ def scatter_features(paths, scat, batch=16):
 
 def main():
     df = pd.read_csv("data/processed/manifest.csv")
-    classes = sorted(df["class"].unique())
     print("class counts:\n", df.groupby(["split", "class"]).size())
 
     scat = ScatteringBranch(J=2, L=8, shape=(256, 256), max_order=2)

@@ -26,7 +26,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from .pseudo_label import class_index_map, make_label_map, binary_defect_mask
+from .pseudo_label import class_index_map, make_label_map
 
 
 def load_config(path: str) -> dict:

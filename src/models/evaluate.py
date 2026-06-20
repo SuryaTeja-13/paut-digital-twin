@@ -18,7 +18,6 @@ import argparse
 import numpy as np
 import pandas as pd
 
-from ..data.dataset import PAUTDataset
 from .infer import load_model, predict_patch
 from .metrics import SegAccumulator
 

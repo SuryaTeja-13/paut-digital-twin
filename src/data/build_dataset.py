@@ -24,7 +24,6 @@ from __future__ import annotations
 import os
 import sys
 import glob
-import json
 import math
 import argparse
 import random
@@ -111,10 +110,13 @@ def save_examples(example_records, cfg: dict) -> None:
         patch = np.load(r["processed_path"])
 
         fig, ax = plt.subplots(1, 3, figsize=(11, 4))
-        ax[0].imshow(rgb); ax[0].set_title(f"raw ({st})\n{r['orig_h']}x{r['orig_w']}")
-        ax[1].imshow(amp, cmap="gray"); ax[1].set_title("amplitude (pre-crop)")
+        ax[0].imshow(rgb)
+        ax[0].set_title(f"raw ({st})\n{r['orig_h']}x{r['orig_w']}")
+        ax[1].imshow(amp, cmap="gray")
+        ax[1].set_title("amplitude (pre-crop)")
         ax[2].imshow(patch, cmap="gray", vmin=0, vmax=1)
-        ax[2].set_title(f"final patch {patch.shape[0]}x{patch.shape[1]}\n[{r['class']}, {r['split']}]")
+        ax[2].set_title(f"final patch {patch.shape[0]}x{patch.shape[1]}"
+                        f"\n[{r['class']}, {r['split']}]")
         for a in ax:
             a.axis("off")
         fig.suptitle(r["image_id"], fontsize=10)

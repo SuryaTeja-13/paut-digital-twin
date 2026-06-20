@@ -130,7 +130,7 @@ def main(argv=None):
     print(f"  overlays -> {ov_dir}")
     print(f"  median defects/image: {int(summary_df['n_defects'].median())}  "
           f"max: {int(summary_df['n_defects'].max())}")
-    print(f"  severity mix: " +
+    print("  severity mix: " +
           ", ".join(f"{k}={v}" for k, v in summary_df['max_severity'].value_counts().items()))
     print(f"  seg-derived dominant type matches true label: {matched:.3f}")
     return 0

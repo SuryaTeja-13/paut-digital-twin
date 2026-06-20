@@ -167,7 +167,7 @@ def main():
     lines.append(f"**Input:** `1 × {mcfg.get('in_channels',1)} × {side} × {side}` "
                  "(single-channel amplitude patch)\n")
     lines.append("## Encoder (contracting path)\n")
-    lines.append(f"- **Depth:** 4 encoder stages + 1 bottleneck.")
+    lines.append("- **Depth:** 4 encoder stages + 1 bottleneck.")
     lines.append(f"- **Widths (channels):** {' → '.join(str(w) for w in widths.values())} "
                  f"(base = {base}; each stage doubles).")
     lines.append(f"- **Each stage:** {spec['convblock_layers_each']} "

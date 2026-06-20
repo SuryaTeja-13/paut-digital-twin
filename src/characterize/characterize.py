@@ -21,7 +21,6 @@ BPVC with a domain expert before any pass/fail use (design_decisions.md §11).
 from __future__ import annotations
 
 import math
-import numpy as np
 from skimage.measure import label, regionprops
 
 

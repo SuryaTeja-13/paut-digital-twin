@@ -21,12 +21,12 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image,
-    HRFlowable, KeepTogether, PageBreak,
+    HRFlowable, PageBreak,
 )
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -54,7 +54,6 @@ RULE = colors.HexColor("#c9d3dc")
 
 
 def styles():
-    ss = getSampleStyleSheet()
     base = dict(fontName="DejaVu", textColor=INK, leading=15, fontSize=10.2)
     out = {
         "body": ParagraphStyle("body", **base, spaceAfter=7, alignment=TA_LEFT),

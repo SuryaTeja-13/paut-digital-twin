@@ -17,7 +17,6 @@ side (scanning folders, saving .npy, manifest) lives in build_dataset.py.
 
 from __future__ import annotations
 
-import os
 import numpy as np
 from PIL import Image
 import cv2
