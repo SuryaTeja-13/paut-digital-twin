@@ -1,0 +1,260 @@
+{
+  "input": [
+    1,
+    1,
+    256,
+    256
+  ],
+  "encoder_widths": {
+    "enc1": 32,
+    "enc2": 64,
+    "enc3": 128,
+    "enc4": 256,
+    "bottleneck": 512
+  },
+  "encoder_depth_blocks": 4,
+  "convblock_layers_each": "2 \u00d7 (Conv3\u00d73 \u2192 GroupNorm \u2192 ReLU)",
+  "downsampling": "MaxPool2d(2) between stages",
+  "decoder": "4 \u00d7 (ConvTranspose2d \u00d72 up \u2192 AttentionGate(skip) \u2192 ConvBlock)",
+  "scattering": {
+    "J": 2,
+    "L": 8,
+    "order": 2,
+    "coeff_breakdown": {
+      "order0": 1,
+      "order1": 16,
+      "order2": 64,
+      "total": 81
+    },
+    "tensor": [
+      1,
+      81,
+      64,
+      64
+    ]
+  },
+  "latent_space": {
+    "bottleneck_tensor": [
+      1,
+      512,
+      16,
+      16
+    ],
+    "bottleneck_channels": 512,
+    "bottleneck_spatial": [
+      16,
+      16
+    ],
+    "pooled_latent_vector": 512,
+    "scattering_global_vector": 81,
+    "classifier_input_dim": [
+      1,
+      2
+    ]
+  },
+  "heads": {
+    "segmentation": [
+      1,
+      3,
+      256,
+      256
+    ],
+    "classification": [
+      1,
+      2
+    ],
+    "size_head_enabled": false
+  },
+  "params": {
+    "trainable": 8798151,
+    "frozen": 0,
+    "total": 8798151
+  },
+  "stages": [
+    {
+      "stage": "scat",
+      "out_shape": [
+        1,
+        81,
+        64,
+        64
+      ],
+      "trainable_params": 0,
+      "frozen_params": 0
+    },
+    {
+      "stage": "enc1",
+      "out_shape": [
+        1,
+        32,
+        256,
+        256
+      ],
+      "trainable_params": 9632,
+      "frozen_params": 0
+    },
+    {
+      "stage": "fuse1",
+      "out_shape": [
+        1,
+        32,
+        256,
+        256
+      ],
+      "trainable_params": 5126,
+      "frozen_params": 0
+    },
+    {
+      "stage": "enc2",
+      "out_shape": [
+        1,
+        64,
+        128,
+        128
+      ],
+      "trainable_params": 55552,
+      "frozen_params": 0
+    },
+    {
+      "stage": "fuse2",
+      "out_shape": [
+        1,
+        64,
+        128,
+        128
+      ],
+      "trainable_params": 14762,
+      "frozen_params": 0
+    },
+    {
+      "stage": "enc3",
+      "out_shape": [
+        1,
+        128,
+        64,
+        64
+      ],
+      "trainable_params": 221696,
+      "frozen_params": 0
+    },
+    {
+      "stage": "fuse3",
+      "out_shape": [
+        1,
+        128,
+        64,
+        64
+      ],
+      "trainable_params": 47858,
+      "frozen_params": 0
+    },
+    {
+      "stage": "enc4",
+      "out_shape": [
+        1,
+        256,
+        32,
+        32
+      ],
+      "trainable_params": 885760,
+      "frozen_params": 0
+    },
+    {
+      "stage": "fuse4",
+      "out_shape": [
+        1,
+        256,
+        32,
+        32
+      ],
+      "trainable_params": 169346,
+      "frozen_params": 0
+    },
+    {
+      "stage": "bottleneck",
+      "out_shape": [
+        1,
+        512,
+        16,
+        16
+      ],
+      "trainable_params": 3540992,
+      "frozen_params": 0
+    },
+    {
+      "stage": "fuseb",
+      "out_shape": [
+        1,
+        512,
+        16,
+        16
+      ],
+      "trainable_params": 633506,
+      "frozen_params": 0
+    },
+    {
+      "stage": "up4",
+      "out_shape": [
+        1,
+        256,
+        32,
+        32
+      ],
+      "trainable_params": 2361475,
+      "frozen_params": 0
+    },
+    {
+      "stage": "up3",
+      "out_shape": [
+        1,
+        128,
+        64,
+        64
+      ],
+      "trainable_params": 590915,
+      "frozen_params": 0
+    },
+    {
+      "stage": "up2",
+      "out_shape": [
+        1,
+        64,
+        128,
+        128
+      ],
+      "trainable_params": 148003,
+      "frozen_params": 0
+    },
+    {
+      "stage": "up1",
+      "out_shape": [
+        1,
+        32,
+        256,
+        256
+      ],
+      "trainable_params": 37139,
+      "frozen_params": 0
+    },
+    {
+      "stage": "seg_head",
+      "out_shape": [
+        1,
+        3,
+        256,
+        256
+      ],
+      "trainable_params": 99,
+      "frozen_params": 0
+    },
+    {
+      "stage": "cls_head",
+      "out_shape": [
+        1,
+        2
+      ],
+      "trainable_params": 76290,
+      "frozen_params": 0
+    }
+  ]
+}
