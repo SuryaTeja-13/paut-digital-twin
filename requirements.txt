@@ -21,6 +21,10 @@ kymatio            # wavelet scattering. NOTE: kymatio 0.3.0 imports a 3D module
 albumentations     # optional richer augmentation (not required by current code)
 
 # ── Milestone 3: explainable AI (Student 3)
+# The production XAI is Grad-CAM/Seg-Grad-CAM + intrinsic attention (no extra deps).
+# lime + shap are needed ONLY to reproduce the method-comparison experiment
+# (src/xai/compare_methods.py); they are NOT used by the pipeline.
+# lime
 # shap
 # grad-cam
 
