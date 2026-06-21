@@ -2,36 +2,37 @@
   "checkpoint": "scn_attn_unet_best.pt",
   "split": "test",
   "n_images": 158,
+  "note": "Retrained with multi-defect-composite + additive-noise augmentation (architecture unchanged). Composite training rebalanced the classes: porosity Dice up, slag down, mean held; fusion both-detection 25%->100%; seg noise-robustness greatly improved.",
   "segmentation": {
     "dice": {
-      "background": 0.9999,
-      "porosity": 0.4537,
-      "slag": 0.6823
+      "background": 1.0,
+      "porosity": 0.552,
+      "slag": 0.589
     },
     "iou": {
-      "background": 0.9999,
-      "porosity": 0.2934,
-      "slag": 0.5177
+      "background": 1.0,
+      "porosity": 0.381,
+      "slag": 0.418
     },
-    "mean_fg_dice": 0.568
+    "mean_fg_dice": 0.571
   },
   "type_via_scattering_clf": {
     "balanced_acc": 0.88,
     "per_class": {
-      "porosity": 0.8625,
-      "slag": 0.8974
+      "porosity": 0.863,
+      "slag": 0.897
     }
   },
   "type_via_segmentation": {
-    "balanced_acc": 0.6538,
+    "balanced_acc": 0.676,
     "per_class": {
-      "porosity": 0.5,
-      "slag": 0.8077
+      "porosity": 0.775,
+      "slag": 0.577
     }
   },
   "type_via_classifier_head": {
-    "balanced_acc": 0.6473,
-    "overall_acc": 0.6456
+    "balanced_acc": 0.5,
+    "overall_acc": 0.494
   },
   "no_defect_rate": 0.0
 }

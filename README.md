@@ -233,8 +233,8 @@ severity), a `_summary.csv`, and annotated overlays in `data/processed/char_over
 
 - **Defect type comes from the scattering classifier** (~0.88 balanced), applied at image level;
   the segmentation supplies *detection* (where the defect is). The two in-network neural routes —
-  seg-derived type and the global-pooled classification head — are both weaker (~0.65 balanced
-  each), so they are kept and reported only, with "improve its pooling" logged as a future tuning
+  seg-derived type (~0.68) and the global-pooled classification head (~0.50) — are both weaker,
+  so they are kept and reported only, with "improve its pooling" logged as a future tuning
   item. This refines decision §11.
 - **Multi-defect**: connected components → one characterization record each.
 - **pixel_to_mm defaults to 1.0** → values are in pixels; set the real scale later (no code change).
@@ -307,9 +307,11 @@ py -3.14 -m src.models.evaluate --ckpt checkpoints/scn_attn_unet_best.pt --split
 Reports per-class Dice/IoU, classification accuracy + balanced accuracy + confusion matrix,
 and the near-empty-mask ("no defect") rate.
 
-Current checkpoint (test split, 158 images): foreground Dice **0.57** (porosity 0.45, slag 0.68);
-seg-derived type balanced accuracy **0.65** — which is exactly why the **scattering classifier**
-(0.88) is used for type instead. The neural classification head is also weak (~0.65 balanced).
+Current checkpoint (test split, 158 images, retrained with composite + noise augmentation):
+foreground Dice **0.57** (porosity 0.55, slag 0.59 — composite training rebalanced the classes,
+lifting the weak porosity); seg-derived type balanced accuracy **0.68** — which is exactly why the
+**scattering classifier** (0.88) is used for type instead. The neural classification head is weak
+(~0.50 balanced, collapses to one class) and is kept only as a diagnostic.
 
 ---
 
@@ -374,9 +376,9 @@ SCN-Attention U-Net vs plain Attention U-Net baseline across data fractions (60 
 0.514), showing the fixed wavelet-scattering prior acts as a regulariser in the low-data regime
 that is typical of PAUT inspection. As data increases, the plain U-Net surpasses SCN — the added
 fusion complexity becomes a burden once sufficient data is available. In these short ablation runs
-(60 epochs each) both models' classification heads stayed near chance (~50% val accuracy); even the
-fully-trained production head only reaches ~0.65 balanced — both far below the independent
-scattering-feature classifier (0.88 balanced), which is why type is decided by it.
+(60 epochs each) both models' classification heads stayed near chance (~50% val accuracy); the
+fully-trained production head is also weak (~0.50–0.65 depending on the run) — far below the
+independent scattering-feature classifier (0.88 balanced), which is why type is decided by it.
 
 Curve: [`data/processed/ablation/ablation_curve.png`](data/processed/ablation/ablation_curve.png)
 Raw numbers: [`data/processed/ablation/ablation_results.csv`](data/processed/ablation/ablation_results.csv)

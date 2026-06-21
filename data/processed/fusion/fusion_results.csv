@@ -1,9 +1,9 @@
 pair,porosity_detected,slag_detected,both_detected,porosity_px,slag_px,dice_porosity,dice_slag
-porosity__G110_1+slag__GS105,True,False,False,114,0,0.5385,0.0
-porosity__G110_2+slag__GS105_1,False,True,False,0,216,0.0,0.731
-porosity__G110_3+slag__GS105_2,True,True,True,11,265,0.0,0.8116
-porosity__G120_1+slag__GS105_3,True,False,False,146,2,0.6606,0.0588
-porosity__G120_2+slag__GS117,False,True,False,0,206,0.0,0.5423
-porosity__G120_3+slag__GS117_1,True,True,True,18,82,0.3077,0.569
-porosity__G141_1+slag__GS117_2,False,True,False,1,127,0.0,0.7905
-porosity__G141_2+slag__GS117_3,False,True,False,0,196,0.0,0.7148
+porosity__G110_1+slag__GS105,True,True,True,50,53,0.8696,0.8947
+porosity__G110_2+slag__GS105_1,True,True,True,91,120,0.5371,0.6748
+porosity__G110_3+slag__GS105_2,True,True,True,75,183,0.2353,0.6833
+porosity__G120_1+slag__GS105_3,True,True,True,75,72,0.7755,0.8406
+porosity__G120_2+slag__GS117,True,True,True,127,80,0.6245,0.4684
+porosity__G120_3+slag__GS117_1,True,True,True,54,47,0.4912,0.3457
+porosity__G141_1+slag__GS117_2,True,True,True,54,77,0.6882,0.825
+porosity__G141_2+slag__GS117_3,True,True,True,83,108,0.6386,0.7281

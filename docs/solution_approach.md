@@ -180,16 +180,17 @@ checkpoint by **validation foreground-Dice**. Flags for every workflow:
 `--limit N` (CPU smoke-test), `--overfit N` (prove the model *can* learn), `--data-fraction`
 (ablation), `--no-scattering` (baseline), `--ckpt-dir` (never overwrite the production checkpoint).
 Final checkpoint: `checkpoints/scn_attn_unet_best.pt` (selected by best validation foreground-Dice);
-test foreground Dice ≈ **0.57** (porosity 0.45, slag 0.68).
+test foreground Dice ≈ **0.57** (porosity 0.55, slag 0.59 — composite augmentation rebalanced the
+classes, lifting the weak porosity).
 
 ---
 
 ## 5. Defect type — the scattering-feature classifier  (`src/models/type_classifier.py`)
 
 > **Why a separate classifier?** The U-Net *detects* defects well but *types* them poorly — its
-> global-average-pooled classification head reaches only ~0.65 balanced accuracy on test, and the
-> seg-derived type is no better (~0.65, with porosity mislabelled as slag about half the time — it
-> throws away the spatial texture information that distinguishes the two). In the short data-ablation
+> global-average-pooled classification head reaches only ~0.50 balanced accuracy on test (it
+> collapses to one class), and the seg-derived type is only ~0.68 — it throws away the spatial
+> texture information that distinguishes the two. In the short data-ablation
 > runs the head sat even lower, near chance (~50%).
 
 Porosity-vs-slag is a **whole-image texture property**, and the fixed scattering transform is exactly
@@ -201,7 +202,7 @@ the right small-sample texture descriptor. So:
    standardise, then fit a **tiny one-hidden-layer MLP** — i.e. the "scattering + small neural
    classifier" of the IWSCN reference paper. (A plain logistic regression gives ~0.80; the
    log-renormalisation + small MLP lifts it to ~0.88.)
-3. Result: **test balanced accuracy ≈ 0.88** (porosity 0.86, slag 0.90) — versus ~0.65 for the
+3. Result: **test balanced accuracy ≈ 0.88** (porosity 0.86, slag 0.90) — versus ~0.50 for the
    neural head. Selected by 5-fold CV on the train split (CV 0.87 ≈ test 0.88, so it generalises,
    not overfit). The scattering filters stay fixed (J=2) — **only the small classifier changed, the
    U-Net architecture is untouched**. Trains on **CPU in minutes** (no GPU, no checkpoint needed).
@@ -305,8 +306,8 @@ It writes to `checkpoints/ablation/` so the production checkpoint is never touch
 confirming it regularizes in the low-data regime that is realistic for PAUT. With more data the plain
 U-Net overtakes it (the fusion complexity is no longer worth it). In these short ablation runs both
 classification heads stayed near chance (~50% val accuracy); even the fully-trained production head
-only reaches ~0.65 balanced — which is *exactly* why type is decided by the standalone scattering
-classifier (0.88) instead.
+only reaches ~0.50–0.65 balanced — which is *exactly* why type is decided by the standalone
+scattering classifier (0.88) instead.
 
 The same curriculum applied to the **type classifier** (log-scattering + tiny MLP) shows it degrades
 *gracefully* and stays well above chance as data shrinks — **0.88 → 0.83 → 0.79 → 0.72** at
@@ -345,8 +346,9 @@ curve at `data/processed/ablation/type_clf_ablation.png`.)
 
 | Limitation | Cause | Fix / status |
 |------------|-------|--------------|
-| Porosity segmentation Dice ~0.45 (test) | Pseudo-labels reduce porosity to tiny bright cores | Hand-label ~30–50 val images (biggest lever) |
-| Neural classification head ~0.65 balanced | Global-average pooling discards shape | Routed around via scattering classifier (0.88) |
+| Porosity segmentation Dice ~0.55 (test) | Pseudo-labels reduce porosity to tiny bright cores (composite augmentation lifted it from 0.45) | Hand-label ~30–50 val images (biggest remaining lever) |
+| Slag Dice dropped 0.68→0.59 after composite retrain | Composite training rebalanced attention toward the weaker class | Acceptable trade — mean Dice held; fusion 25%→100% |
+| Neural classification head ~0.50 (collapses to one class) | Global-average pooling discards shape | Routed around via scattering classifier (0.88) |
 | Severity / pass-fail thresholds | No calibrated standard yet | Tunable placeholders; calibrate to ISO 5817 / ASME |
 | `pixel_to_mm` unknown | Scale not provided | Defaults to 1.0 (pixels); a real value plugs in, no code change |
 
