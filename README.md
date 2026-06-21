@@ -343,6 +343,15 @@ Seg-Grad-CAM heatmap + trust score, a per-defect table and cards (size/orientati
 confidence), and the weld-health panel. Verified: pipeline runs end-to-end (GS1 → 2 defects,
 health 0.84, PASS, XAI trust 0.95) and the app boots and serves.
 
+**Continuous feed (real-time inspection)** — the dashboard's *Continuous feed* mode auto-processes
+a whole folder of welds in sequence as a live "video feed" (no manual one-at-a-time selection),
+showing each frame's detection, the digital-twin health with an explicit **calculation proof**
+(`health = 1 − min(1, Σseverity/capacity)`), and a running health timeline + PASS/REVIEW/FAIL
+tally. Build the 15-frame demo set (12 defect + 3 no-defect) first:
+```bash
+py -3.14 -m scripts.make_demo_feed     # -> data/processed/demo_feed/
+```
+
 ### Tests
 ```bash
 py -3.14 -m tests.test_twin

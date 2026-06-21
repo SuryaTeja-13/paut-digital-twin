@@ -18,6 +18,7 @@ import os
 import sys
 import glob
 import json
+import time
 import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -113,9 +114,79 @@ def status_banner(h):
         unsafe_allow_html=True)
 
 
+def render_live_feed(pipe):
+    """Continuous, automatic inspection of a folder of images as a live 'video feed' (sir 8).
+
+    Processes every frame in sequence (no manual one-at-a-time selection), updating the display
+    in place with the per-frame detection, the digital-twin health, an explicit calculation
+    proof, and a running health timeline + PASS/REVIEW/FAIL tally.
+    """
+    st.subheader("🎞️ Continuous inspection feed")
+    st.caption("Automatic real-time inspection over a sequence of welds (incl. no-defect frames).")
+    c = st.columns([3, 1, 1])
+    folder = c[0].text_input("Image folder", "data/processed/demo_feed")
+    delay = c[1].slider("Frame delay (s)", 0.0, 2.0, 0.6, 0.1)
+    paths = sorted(glob.glob(os.path.join(folder, "*.png")) +
+                   glob.glob(os.path.join(folder, "*.jpg")) +
+                   glob.glob(os.path.join(folder, "*.jpeg")))
+    c[2].metric("Frames", len(paths))
+    if not paths:
+        st.warning(f"No images found in `{folder}`. Build the demo set: "
+                   "`py -3.14 -m scripts.make_demo_feed`")
+        return
+    if not c[0].button("▶ Run continuous feed", type="primary"):
+        st.info("Press ▶ to stream the sequence through the digital twin.")
+        return
+
+    frame_box, proof_box, trend_box = st.empty(), st.empty(), st.empty()
+    timeline = []
+    for i, p in enumerate(paths, 1):
+        res = pipe.analyze(p, run_xai=False)
+        hh = res["health"]
+        timeline.append({"frame": i, "image": res["image"], "health": hh["health_index"],
+                         "status": hh["status"], "type": res["defect_type"] or "no defect",
+                         "defects": hh["n_defects"]})
+        with frame_box.container():
+            status_banner(hh)
+            left, right = st.columns([2, 1])
+            left.pyplot(weld_map_fig(res["patch"], res["seg"], res["defects"]))
+            right.markdown(f"### Frame {i} / {len(paths)}\n`{res['image']}`")
+            right.metric("Defect type", res["defect_type"] or "no defect")
+            right.metric("Defects", hh["n_defects"])
+            right.metric("Health index", f"{hh['health_index']:.3f}")
+        with proof_box.container():
+            cap, tot = hh["capacity"], hh["total_severity"]
+            ratio = min(1.0, tot / cap) if cap else 0.0
+            st.markdown("**Health calculation (proof) —** `health = 1 − min(1, Σseverity / capacity)`")
+            st.code(
+                f"Σ severity   = {tot:.3f}      (critical {hh['counts']['critical']}, "
+                f"moderate {hh['counts']['moderate']}, minor {hh['counts']['minor']})\n"
+                f"capacity     = {cap:.1f}\n"
+                f"health index = 1 − min(1, {tot:.3f} / {cap:.1f}) "
+                f"= 1 − {ratio:.3f} = {hh['health_index']:.3f}\n"
+                f"status       = {hh['status']}   "
+                f"(FAIL if any critical; REVIEW if health < 0.7 or ≥2 moderate; else PASS)",
+                language="text")
+        with trend_box.container():
+            df = pd.DataFrame(timeline)
+            t1, t2 = st.columns([2, 1])
+            t1.line_chart(df.set_index("frame")["health"], height=200)
+            t2.write("**Tally so far**")
+            t2.write({k: int((df["status"] == k).sum()) for k in ("PASS", "REVIEW", "FAIL")})
+        time.sleep(delay)
+
+    st.success(f"Feed complete — {len(timeline)} frames inspected.")
+    st.dataframe(pd.DataFrame(timeline), use_container_width=True)
+
+
 # ─────────────── header + input ───────────────
 st.title("🔬 Explainable-AI Digital Twin — PAUT Weld Inspection")
 st.caption("Detect & classify weld defects, measure them, explain the decision, and report weld health.")
+
+mode = st.sidebar.radio("Mode", ["🔍 Single image", "🎞️ Continuous feed"])
+if mode == "🎞️ Continuous feed":
+    render_live_feed(get_pipeline())
+    st.stop()
 
 with st.sidebar:
     st.header("Input")
