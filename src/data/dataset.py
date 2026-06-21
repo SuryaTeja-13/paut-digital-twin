@@ -37,17 +37,40 @@ class PAUTDataset(Dataset):
             parts = [g.sample(frac=fraction, random_state=seed) for _, g in df.groupby("class")]
             df = pd.concat(parts).reset_index(drop=True)
         self.df = df.reset_index(drop=True)
+        self.classes = list(classes)
         self.cls_to_idx = {c: i for i, c in enumerate(classes)}
         self.augment = augment
         self.aug = Augmentor(aug_cfg or {}, seed) if augment else None
+        # multi-defect composite augmentation (train only): blend an image with one of
+        # the OTHER class so the model learns to segment BOTH flaw types in one image
+        # (addresses the single-type-training limitation; architecture unchanged).
+        self.composite_p = float((aug_cfg or {}).get("composite_p", 0.0)) if augment else 0.0
+        self.idx_by_class = {c: self.df.index[self.df["class"] == c].tolist() for c in classes}
+        self.comp_rng = np.random.default_rng(seed + 1)
 
     def __len__(self):
         return len(self.df)
+
+    def _composite(self, img, mask, cur_class):
+        """Max-blend with a random image of the other class; union their defect masks."""
+        others = [c for c in self.classes if c != cur_class]
+        pool = self.idx_by_class.get(others[0], []) if others else []
+        if not pool:
+            return img, mask
+        j = int(self.comp_rng.choice(pool))
+        row2 = self.df.iloc[j]
+        img2 = np.load(row2["processed_path"]).astype(np.float32)
+        mask2 = np.load(row2["mask_path"]).astype(np.int64)
+        blended = np.maximum(img, img2)                       # both bright defects present
+        combined = np.where(mask2 > 0, mask2, mask)           # union; each flaw keeps its class id
+        return blended, combined
 
     def __getitem__(self, i):
         row = self.df.iloc[i]
         img = np.load(row["processed_path"]).astype(np.float32)      # (256,256)
         mask = np.load(row["mask_path"]).astype(np.int64)            # (256,256)
+        if self.composite_p > 0 and self.comp_rng.random() < self.composite_p:
+            img, mask = self._composite(img, mask, row["class"])
         if self.aug is not None:
             img, mask = self.aug(img, mask)
         img = torch.from_numpy(np.ascontiguousarray(img)).unsqueeze(0)   # (1,H,W)
@@ -82,6 +105,10 @@ class Augmentor:
         if self.rng.random() < c.get("speckle_p", 0.3):
             sigma = float(c.get("speckle_sigma", 0.05))
             img = img * (1.0 + self.rng.normal(0, sigma, img.shape).astype(np.float32))
+        if self.rng.random() < c.get("noise_p", 0.0):
+            # additive Gaussian noise — improves robustness to acquisition noise
+            sigma = float(c.get("noise_sigma", 0.04))
+            img = img + self.rng.normal(0, sigma, img.shape).astype(np.float32)
         if self.rng.random() < c.get("attenuation_p", 0.2):
             # depth-dependent falloff: amplitude decreases with row (depth)
             h = img.shape[0]
