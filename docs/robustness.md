@@ -8,11 +8,11 @@ Gaussian noise added to real test images at rising σ; segmentation Dice and typ
 
 | σ | Foreground Dice | Type accuracy |
 |---|----------------:|--------------:|
-| 0.00 | 0.709 | 1.000 |
-| 0.05 | 0.713 | 0.500 |
-| 0.10 | 0.623 | 0.500 |
-| 0.20 | 0.477 | 0.500 |
-| 0.40 | 0.138 | 0.500 |
+| 0.00 | 0.594 | 1.000 |
+| 0.05 | 0.509 | 0.500 |
+| 0.10 | 0.580 | 0.500 |
+| 0.20 | 0.052 | 0.500 |
+| 0.40 | 0.007 | 0.500 |
 
 Curve: `data/processed/robustness/noise_curve.png`.
 
@@ -26,6 +26,6 @@ Plain dark images with white text (no real defect). The model flagged a (false) 
 
 ## Findings & interpretation
 
-- **Noise is the weak point.** Foreground Dice falls from 0.71 (clean) to 0.14 at σ=0.40, and type accuracy drops to chance (0.50) by σ=0.05 — the scattering type-classifier was trained on clean features, so additive noise pushes them out of distribution and it collapses to one class. **Mitigation:** add additive-noise augmentation when extracting the scattering features / retrain the type head with noisy samples.
+- **Noise is the weak point.** Foreground Dice falls from 0.59 (clean) to 0.01 at σ=0.40, and type accuracy drops to chance (0.50) by σ=0.05 — the scattering type-classifier was trained on clean features, so additive noise pushes them out of distribution and it collapses to one class. **Mitigation:** add additive-noise augmentation when extracting the scattering features / retrain the type head with noisy samples.
 - **Detection generalises, typing does not.** The model finds 100% of synthetic defects (it learned what a bright compact/elongated region looks like) but can only type them at chance — synthetic texture differs from real TFM speckle, so the texture-based type classifier can't place them.
 - **The text probe is a clean pass.** 0% false positives means the model does NOT mistake bright text for a defect — strong evidence it learned defect *texture/shape*, not merely 'bright = defect'. This is the most reassuring result of the three.

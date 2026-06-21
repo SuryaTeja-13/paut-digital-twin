@@ -6,24 +6,24 @@ Fused 8 porosity+slag pairs (test split) by amplitude max-blend.
 
 ## Results
 
-- **Both types detected in 100%** of composites.
-- Porosity detected in 100%, slag detected in 100%.
-- Mean per-class Dice on composites: porosity 0.607, slag 0.683.
+- **Both types detected in 88%** of composites.
+- Porosity detected in 88%, slag detected in 100%.
+- Mean per-class Dice on composites: porosity 0.590, slag 0.609.
 
 | Pair | porosity | slag | both | Dice por | Dice slag |
 |------|:-------:|:----:|:----:|--------:|---------:|
-| porosity__G110_1+slag__GS105 | Y | Y | Y | 0.87 | 0.89 |
-| porosity__G110_2+slag__GS105_1 | Y | Y | Y | 0.54 | 0.67 |
-| porosity__G110_3+slag__GS105_2 | Y | Y | Y | 0.24 | 0.68 |
-| porosity__G120_1+slag__GS105_3 | Y | Y | Y | 0.78 | 0.84 |
-| porosity__G120_2+slag__GS117 | Y | Y | Y | 0.62 | 0.47 |
-| porosity__G120_3+slag__GS117_1 | Y | Y | Y | 0.49 | 0.35 |
-| porosity__G141_1+slag__GS117_2 | Y | Y | Y | 0.69 | 0.82 |
-| porosity__G141_2+slag__GS117_3 | Y | Y | Y | 0.64 | 0.73 |
+| porosity__G110_1+slag__GS105 | Y | Y | Y | 0.63 | 0.46 |
+| porosity__G110_2+slag__GS105_1 | Y | Y | Y | 0.73 | 0.70 |
+| porosity__G110_3+slag__GS105_2 | Y | Y | Y | 0.40 | 0.30 |
+| porosity__G120_1+slag__GS105_3 | Y | Y | Y | 0.99 | 0.92 |
+| porosity__G120_2+slag__GS117 | - | Y | - | 0.00 | 0.55 |
+| porosity__G120_3+slag__GS117_1 | Y | Y | Y | 0.00 | 0.00 |
+| porosity__G141_1+slag__GS117_2 | Y | Y | Y | 0.97 | 0.98 |
+| porosity__G141_2+slag__GS117_3 | Y | Y | Y | 0.99 | 0.98 |
 
 ## Interpretation
 
 - **the segmentation head generalises well to mixed defects — it localises both flaw types in one image despite only ever training on single-type images.**
-- The miss is asymmetric: **porosity** is detected less often (porosity 100% vs slag 100%). This matches its weaker stand-alone score (porosity Dice ~0.45 vs slag ~0.68): when the fainter porosity is max-blended with the stronger slag, the dominant signal suppresses it.
+- The miss is asymmetric: **porosity** is detected less often (porosity 88% vs slag 100%). This matches its weaker stand-alone score (porosity Dice ~0.45 vs slag ~0.68): when the fainter porosity is max-blended with the stronger slag, the dominant signal suppresses it.
 - Detection is per-pixel, so the head *can* light up both class channels when both signatures are clearly present (see the both-detected cases) — the limit is signal strength of the weaker flaw, not the architecture.
 - **Mitigation:** include a few multi-defect composites in training, or detect each class at its own threshold. Gallery: `data/processed/fusion/fusion_gallery.png`.

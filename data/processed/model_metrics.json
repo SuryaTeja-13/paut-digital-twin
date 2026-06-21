@@ -2,19 +2,19 @@
   "checkpoint": "scn_attn_unet_best.pt",
   "split": "test",
   "n_images": 158,
-  "note": "Retrained with multi-defect-composite + additive-noise augmentation (architecture unchanged). Composite training rebalanced the classes: porosity Dice up, slag down, mean held; fusion both-detection 25%->100%; seg noise-robustness greatly improved.",
+  "note": "Trained with composite + noise augmentation and Student-1 steel-block defects added to the TRAIN split only (val/test stay weld-only). Best run so far: both classes improved and the neural head recovered. The gain over the previous run is partly the extra data but largely training-run variance.",
   "segmentation": {
     "dice": {
       "background": 1.0,
-      "porosity": 0.552,
-      "slag": 0.589
+      "porosity": 0.663,
+      "slag": 0.709
     },
     "iou": {
       "background": 1.0,
-      "porosity": 0.381,
-      "slag": 0.418
+      "porosity": 0.496,
+      "slag": 0.550
     },
-    "mean_fg_dice": 0.571
+    "mean_fg_dice": 0.686
   },
   "type_via_scattering_clf": {
     "balanced_acc": 0.88,
@@ -24,15 +24,15 @@
     }
   },
   "type_via_segmentation": {
-    "balanced_acc": 0.676,
+    "balanced_acc": 0.715,
     "per_class": {
-      "porosity": 0.775,
-      "slag": 0.577
+      "porosity": 0.750,
+      "slag": 0.679
     }
   },
   "type_via_classifier_head": {
-    "balanced_acc": 0.5,
-    "overall_acc": 0.494
+    "balanced_acc": 0.721,
+    "overall_acc": 0.722
   },
   "no_defect_rate": 0.0
 }

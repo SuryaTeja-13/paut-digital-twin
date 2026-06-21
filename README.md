@@ -233,8 +233,9 @@ severity), a `_summary.csv`, and annotated overlays in `data/processed/char_over
 
 - **Defect type comes from the scattering classifier** (~0.88 balanced), applied at image level;
   the segmentation supplies *detection* (where the defect is). The two in-network neural routes —
-  seg-derived type (~0.68) and the global-pooled classification head (~0.50) — are both weaker,
-  so they are kept and reported only, with "improve its pooling" logged as a future tuning
+  seg-derived type (~0.72) and the global-pooled classification head (~0.72) — are both weaker
+  than the scattering classifier, so they are kept and reported only, with "improve its pooling"
+  logged as a future tuning
   item. This refines decision §11.
 - **Multi-defect**: connected components → one characterization record each.
 - **pixel_to_mm defaults to 1.0** → values are in pixels; set the real scale later (no code change).
@@ -307,11 +308,11 @@ py -3.14 -m src.models.evaluate --ckpt checkpoints/scn_attn_unet_best.pt --split
 Reports per-class Dice/IoU, classification accuracy + balanced accuracy + confusion matrix,
 and the near-empty-mask ("no defect") rate.
 
-Current checkpoint (test split, 158 images, retrained with composite + noise augmentation):
-foreground Dice **0.57** (porosity 0.55, slag 0.59 — composite training rebalanced the classes,
-lifting the weak porosity); seg-derived type balanced accuracy **0.68** — which is exactly why the
-**scattering classifier** (0.88) is used for type instead. The neural classification head is weak
-(~0.50 balanced, collapses to one class) and is kept only as a diagnostic.
+Current checkpoint (test split, 158 images; composite + noise augmentation + Student-1 steel-block
+defects in the train split): foreground Dice **0.69** (porosity 0.66, slag 0.71 — both classes up);
+seg-derived type balanced accuracy **0.72**. The independent **scattering classifier** (0.88) is
+still used for type because it is the most reliable; the neural classification head also recovered
+to **~0.72 balanced** in this run and is reported alongside it.
 
 ---
 
