@@ -1,25 +1,25 @@
 # Explainable-AI Digital Twin for PAUT Weld Inspection
-## Consolidated Master Prompt + Full End-to-End Architectural Solution (Student 1 → Student 4)
+## Full End-to-End System Design (Student 1 → Student 4)
 
-*Prepared as a single source-of-truth you can keep open in VS Code while building. Part 1 is the reusable prompt that captures every requirement. Parts 2–9 are the actual engineering blueprint.*
-
----
-
-## How to use this document
-
-- **Part 1** is the "strong prompt" you asked for — paste it to any AI assistant (or keep as your project charter) and nothing your sir said is lost.
-- **Part 2** explains *the reason* your sir keeps insisting on this exact approach. Read it once; it justifies every later decision.
-- **Parts 3–7** are the real architecture, role by role (Student 1 → Student 4).
-- **Part 8** is the build order for a beginner in VS Code.
-- **Part 9** is the "accuracy is low — what now" playbook, because your sir explicitly said *solve problems slowly to reach the best accuracy.*
+*Single source-of-truth design document for the project. Part 1 records the project requirements and scope; Parts 2–9 are the engineering blueprint, role by role.*
 
 ---
 
-# PART 1 — THE MASTER PROMPT (reusable, nothing omitted)
+## Document map
 
-> **Project.** Build an Explainable-AI Digital Twin for weld inspection from Phased Array Ultrasonic Testing (PAUT) data, following the problem statement in *"Explainable AI-Based Digital Twin for PAUT Weld Inspection"* exactly, plus the specific methodology my sir added in discussion. The system must (1) automatically detect and classify weld defects from PAUT TFM images, (2) characterize each defect (size, shape, orientation, location, severity), (3) explain its predictions with Explainable AI chosen specifically for this model, and (4) present everything in a Digital Twin of weld health with an interactive dashboard.
+- **Part 1** records the full project requirements and scope (problem statement, team roles, model, data strategy, deliverables).
+- **Part 2** explains *the reason* the scattering + attention approach was chosen; it justifies every later decision.
+- **Parts 3–7** are the architecture, role by role (Student 1 → Student 4).
+- **Part 8** is the incremental build order.
+- **Part 9** is the "accuracy is low — what now" playbook (solve problems slowly to reach the best accuracy).
+
+---
+
+# PART 1 — PROJECT REQUIREMENTS & SCOPE
+
+> **Project.** Build an Explainable-AI Digital Twin for weld inspection from Phased Array Ultrasonic Testing (PAUT) data, following the problem statement in *"Explainable AI-Based Digital Twin for PAUT Weld Inspection"*, plus the specific methodology defined for this project. The system must (1) automatically detect and classify weld defects from PAUT TFM images, (2) characterize each defect (size, shape, orientation, location, severity), (3) explain its predictions with Explainable AI chosen specifically for this model, and (4) present everything in a Digital Twin of weld health with an interactive dashboard.
 >
-> **Team & roles (8–10 week internship, 3–4 students).** Student 1: PAUT data acquisition, preprocessing, signal/image analysis, defect annotation, dataset preparation — *already done; porosity and slag images collected.* Student 2: AI/ML model for defect detection + classification + characterization — *must follow my sir's modified approach below, not the basic CNN/YOLO of the PDF.* Student 3: Explainable AI — *must select the single best XAI method(s) for this particular model* from at least {Grad-CAM, Grad-CAM++/CAMs, SHAP, LIME, Guided Backpropagation, Occlusion saliency, SmoothGrad, Integrated Gradients}, justified against the model's architecture and accuracy, adhering to standards. Student 4: Digital Twin dashboard, weld-health visualization, integration — *must be a research-grade digital twin*, informed by reading digital-twin research papers (what it is, how it is used in science and industry).
+> **Team & roles (8–10 week internship, 3–4 students).** Student 1: PAUT data acquisition, preprocessing, signal/image analysis, defect annotation, dataset preparation — *already done; porosity and slag images collected.* Student 2: AI/ML model for defect detection + classification + characterization — *must follow the supervisor's modified approach below, not the basic CNN/YOLO of the PDF.* Student 3: Explainable AI — *must select the single best XAI method(s) for this particular model* from at least {Grad-CAM, Grad-CAM++/CAMs, SHAP, LIME, Guided Backpropagation, Occlusion saliency, SmoothGrad, Integrated Gradients}, justified against the model's architecture and accuracy, adhering to standards. Student 4: Digital Twin dashboard, weld-health visualization, integration — *must be a research-grade digital twin*, informed by reading digital-twin research papers (what it is, how it is used in science and industry).
 >
 > **Defect classes.** cracks, porosity, slag inclusion, lack of fusion (Student 1 currently has porosity + slag; design must extend to the rest).
 >
@@ -37,15 +37,15 @@
 >
 > **Digital Twin requirement (Student 4).** Build the *best possible* digital twin: a virtual replica of the weld reproducing geometry, defect locations, inspection history, health status and severity, with real-time-style visualization and an integration layer, grounded in digital-twin research practice.
 >
-> **Working style.** I am a beginner using VS Code. Guide me through every small step slowly, one after another; we build the whole project incrementally. Stick exactly to my sir's methodology and the problem statement — there is a deliberate reason for this approach (identify it). Deliverables: documented Git repo (modular code, version control, requirements file, reproducibility), technical report (problem statement, literature review, PAUT methodology, dataset prep, model, XAI, digital-twin architecture, results/metrics, limitations, future scope, with workflow + architecture diagrams), and a final demo/presentation.
+> **Development approach.** The project is built incrementally in VS Code, one module at a time, following the defined methodology and problem statement (there is a deliberate reason for this approach — see Part 2). Deliverables: documented Git repo (modular code, version control, requirements file, reproducibility), technical report (problem statement, literature review, PAUT methodology, dataset prep, model, XAI, digital-twin architecture, results/metrics, limitations, future scope, with workflow + architecture diagrams), and a final demo/presentation.
 >
 > **Reference template.** Transfer the design philosophy of He et al. 2025, *"Real-time detection of insulator defects based on improved wavelet scattering convolutional network"* (IWSCN: improved wavelet scattering + small CNN, strong in small-sample regimes) from insulators to PAUT welds.
 
 ---
 
-# PART 2 — THE REASON (why your sir insists on the scattering + attention approach)
+# PART 2 — THE REASON (why the supervisor insists on the scattering + attention approach)
 
-Your sir said *"there is a reason I told you to follow this particular approach."* Here it is, and it is a single, coherent reason with several faces:
+The supervisor specified this particular approach for a deliberate reason. Here it is — a single, coherent reason with several faces:
 
 **Your real constraint is limited, expensive, noisy data — and the wavelet scattering transform is the single best-known prior for exactly that situation.**
 
@@ -59,7 +59,7 @@ Your sir said *"there is a reason I told you to follow this particular approach.
 
 5. **Attention U-Net supplies what scattering lacks.** Scattering gives stable *texture/edge* features but not pixel-precise localization or long-range semantic context. The Attention U-Net adds exactly that: precise masks and attention-gated context. Fusing the two means stable small-data features **and** the sharp masks you need to *characterize* defects (size, orientation, severity) and feed the **digital twin**. A plain CNN/YOLO (the PDF's default) would need far more labeled data and would not give you clean masks for characterization.
 
-**One-line version for your report:** *We adopt an SCN-assisted Attention U-Net because the wavelet scattering prior gives translation-/deformation-invariant, noise-robust features that generalize from very few PAUT samples, while the attention U-Net contributes the precise segmentation required for quantitative defect characterization and digital-twin visualization — solving the small-data problem that defeats conventional CNN/YOLO pipelines.*
+**One-line version for the report:** *We adopt an SCN-assisted Attention U-Net because the wavelet scattering prior gives translation-/deformation-invariant, noise-robust features that generalize from very few PAUT samples, while the attention U-Net contributes the precise segmentation required for quantitative defect characterization and digital-twin visualization — solving the small-data problem that defeats conventional CNN/YOLO pipelines.*
 
 ---
 
@@ -124,7 +124,7 @@ This *one* step satisfies "must work on colour and greyscale alike": the SCN nev
 5. Save as `float32` `.npy` (preferred) or 16-bit PNG, plus the manifest.
 
 ### 4.3 Annotation & the Stage-1 pseudo-labels
-You likely have few hand labels. Follow the sir's Stage-1 plan: generate **pseudo-masks** with the current contour method (threshold on amplitude → morphology → contours → fill → box). These are approximate but enough to bootstrap Stage-2 training. Reserve a small, *carefully hand-labeled* validation set (even 30–50 images) — never train on it; it is your honest accuracy meter.
+You likely have few hand labels. Follow the supervisor's Stage-1 plan: generate **pseudo-masks** with the current contour method (threshold on amplitude → morphology → contours → fill → box). These are approximate but enough to bootstrap Stage-2 training. Reserve a small, *carefully hand-labeled* validation set (even 30–50 images) — never train on it; it is your honest accuracy meter.
 
 ### 4.4 Dataset manifest (example columns)
 `image_id, path, source_type(color/gray), colormap, pixel_to_mm, weld_id, defect_present, label_type(true/pseudo), split(train/val/test)`
@@ -137,11 +137,11 @@ This is the heart. Build it in PyTorch.
 
 ### 5.1 The scattering branch (SCN)
 Use **Kymatio** (`Scattering2D`) — a maintained wavelet-scattering library, so you don't hand-code wavelets.
-- Parameters from the sir's sheet: `J = 2` (start) or `3`, `L = 8` orientations (or 6), `order = 2`.
+- Parameters from the supervisor's sheet: `J = 2` (start) or `3`, `L = 8` orientations (or 6), `order = 2`.
 - For a 256×256 input with `J=2, L=8, order=2`, scattering returns ~81 channels at 64×64 spatial resolution (the field shrinks by 2^J). With `J=3` you get more channels at 32×32.
 - **No gradients flow into the scattering filters** — they're fixed. This is the small-data advantage; keep it that way.
 
-**Producing S1–S4 to match encoder scales (faithful to the sir's table/image 3):**
+**Producing S1–S4 to match encoder scales (faithful to the supervisor's table/image 3):**
 Scattering gives one fixed-resolution tensor. To get a feature at each U-Net level, for level *i* do:
 `S → 1×1 Conv(to Ci channels) → bilinear-resize to (Hi×Wi)`.
 That literally implements *"SCN coefficients → 1×1 Conv → resize to encoder scale."* The global scattering vector (spatial average) feeds the bottleneck and is also a clean input to the classification head.
@@ -157,7 +157,7 @@ fuse_i = Concat(E_i, resize(1x1Conv(S)))      # channels: Ci + Ci
 fuse_i = 1x1 Conv(2Ci → Ci)                    # mix
 fuse_i = CBAM(fuse_i)                          # channel attention → spatial attention
 ```
-CBAM (channel + spatial attention) is exactly the "SE/CBAM" the sir specified. CBAM is the better pick here because its **spatial** attention map is also a *free, intrinsic explainability signal* for Student 3.
+CBAM (channel + spatial attention) is exactly the "SE/CBAM" the supervisor specified. CBAM is the better pick here because its **spatial** attention map is also a *free, intrinsic explainability signal* for Student 3.
 
 ### 5.4 Decoder with Attention Gates
 `UpConv(512→256) → UpConv(256→128) → UpConv(128→64) → UpConv(64→32)`, where each skip connection passes through an **Attention Gate** (the gate uses the decoder's gating signal to weight the fused encoder features). Attention gates suppress irrelevant background — important because welds have busy backgrounds and few real defect pixels.
@@ -167,8 +167,8 @@ CBAM (channel + spatial attention) is exactly the "SE/CBAM" the sir specified. C
 - **Head 2 — Classification:** `Global pooling on the bottleneck + global scattering vector → MLP → {normal, porosity, slag, mixed}`. Feeding the scattering vector here directly leverages the small-data strength.
 - **Head 3 — Size regression (optional):** keep it optional. The sir is right: **derive size from the mask** (more accurate and interpretable). Use Head 3 only as an auxiliary sanity check if at all.
 
-### 5.6 Loss function (their formula + the re-check the sir asked for)
-Start with exactly what the sir gave:
+### 5.6 Loss function (their formula + the re-check the supervisor asked for)
+Start with exactly what the supervisor gave:
 ```
 L = 0.6 · L_DiceFocal(seg) + 0.3 · L_cls(classification) + 0.1 · L_boundary
 ```
@@ -181,15 +181,15 @@ L = 0.6 · L_DiceFocal(seg) + 0.3 · L_cls(classification) + 0.1 · L_boundary
 On each predicted instance mask:
 - **Blob analysis** (`skimage.measure.regionprops` / `cv2` blob/contour) → area_px, major_axis, minor_axis, orientation, centroid, eccentricity, equivalent diameter, solidity.
 - Convert with `pixel_to_mm`: `length_mm = major_axis·s`, `width_mm = minor_axis·s`, `area_mm2 = area_px·s²`, `equiv_diameter_mm`, `aspect_ratio = major/minor`.
-- **Orientation** = PCA angle of the mask points (regionprops gives this directly; PCA on the (x,y) pixel coordinates is the robust version the sir wants).
+- **Orientation** = PCA angle of the mask points (regionprops gives this directly; PCA on the (x,y) pixel coordinates is the robust version the supervisor wants).
 - **Severity** = `f(type, size, orientation, location)`. A defensible scaffold:
-  `severity = w_type[type] · norm(size) · orientation_factor · location_factor`, mapped to {minor, moderate, critical}. **Do not invent acceptance thresholds** — calibrate the cut-offs to a real weld-acceptance standard (e.g., ISO 5817 / ASME BPVC) with your sir/domain expert. Note this clearly in the report.
+  `severity = w_type[type] · norm(size) · orientation_factor · location_factor`, mapped to {minor, moderate, critical}. **Do not invent acceptance thresholds** — calibrate the cut-offs to a real weld-acceptance standard (e.g., ISO 5817 / ASME BPVC) with the supervisor/domain expert. Note this clearly in the report.
 
 ### 5.8 Multi-defect handling
 Run **connected-components** on the per-class mask for the simple case; use **watershed** when defects touch; graduate to a **Mask-R-CNN-style instance head** only if needed. Each instance → its own characterization record. This is what lets one TFM image report several defects.
 
 ### 5.9 Physics-aware augmentation (not just rotate/flip)
-Implement all seven the sir listed, as an `albumentations`-style pipeline plus custom ops:
+Implement all seven the supervisor listed, as an `albumentations`-style pipeline plus custom ops:
 amplitude variation (gain scaling), speckle/noise injection (multiplicative speckle), defect translation+rotation, simulated attenuation (depth-dependent intensity falloff), elastic deformation, **synthetic defect insertion** (paste a real defect blob into a clean weld background with feathered edges), and **mixup/cutmix restricted to physically plausible defect zones**. These multiply your effective dataset without violating ultrasound physics — the key to limited-data success.
 
 ### 5.10 Training protocol & hyperparameters (starting point — tune)
@@ -205,7 +205,7 @@ amplitude variation (gain scaling), speckle/noise injection (multiplicative spec
 | Regularization | dropout 0.1–0.2, heavy aug | combat overfitting |
 | Seed | fixed + logged | reproducibility deliverable |
 
-### 5.11 Limited-data curriculum (exactly as the sir described)
+### 5.11 Limited-data curriculum (exactly as the supervisor described)
 1. **Phase A — train on the full set**, fix all problems, push to best accuracy.
 2. **Phase B — data ablation:** retrain on 75% → 50% → 25% → 10% of images, plotting val Dice/accuracy vs dataset size. The scattering prior should make this curve *flat* far longer than a plain CNN — that flatness is your headline result proving limited-data robustness. Compare against a plain U-Net baseline to *show* the SCN advantage.
 
@@ -232,7 +232,7 @@ The sir asked you to pick the XAI that *aligns with this specific model* — not
 - **LIME:** superpixel perturbation is poor for fine speckle/texture in TFM and is unstable run-to-run — not your primary tool.
 - **Pure occlusion saliency:** correct but slow and coarse; keep only as an optional cross-check.
 
-### 6.3 Faithfulness checks (the "standards" the sir wants)
+### 6.3 Faithfulness checks (the "standards" the supervisor wants)
 Don't just produce pretty heatmaps — *quantify* them: deletion/insertion AUC, and pointing-game accuracy against the ground-truth mask. Report a single trust score per explanation so Student 4's dashboard can display confidence. This is what makes the XAI "adhere to standards."
 
 **Selection summary (one table for the report).** "Implemented" = what actually runs in `src/xai/`; "Considered" = evaluated in the design but not built.
@@ -253,7 +253,7 @@ The sir wants the *best* digital twin and told you to read DT research. Here's t
 ### 7.1 What a digital twin actually is (for the report)
 In NDT/Industry-4.0 practice a digital twin is a **virtual replica of a physical asset that reproduces its behaviour under real operating conditions**, used to visualize internal defects, simulate stresses, and anticipate degradation, with AI providing the analytical layer for asset-integrity management. The standard architecture has **three layers**: Physical System → Digital Twin Layer (the virtual model, kept in sync) → Digital Twin Application Layer (dashboards, decisions). Tie it to inspection standards (ISO 9712 operator/method, ISO 9001 quality, and risk-based-inspection / API-580 thinking for severity → action).
 
-### 7.2 The three layers, concretely for your weld
+### 7.2 The three layers, concretely for the weld
 - **Physical layer:** the welded component + PAUT scan (Student 1's data feed).
 - **Twin layer:** a parametric virtual weld — geometry (length, thickness, bead profile), a **defect map** (each defect from `defects.json` placed at its centroid in weld coordinates, sized/oriented from characterization), **inspection history** (time-stamped scans), a **health index** (e.g., `1 − Σ severity_i / capacity`), and optionally **defect-growth / RUL** prediction as a "possible additional module" the PDF mentions.
 - **Application layer:** the dashboard below.
@@ -313,7 +313,7 @@ paut-digital-twin/
 
 ---
 
-# PART 9 — "ACCURACY IS LOW" PLAYBOOK (solve slowly, as the sir said)
+# PART 9 — "ACCURACY IS LOW" PLAYBOOK (solve slowly, as the supervisor said)
 
 When classification/segmentation underperforms, change *one thing at a time* in this order and log each result:
 
@@ -324,7 +324,7 @@ When classification/segmentation underperforms, change *one thing at a time* in 
 5. **Augmentation:** turn on the physics-aware set; verify synthetic-defect insertion looks realistic (bad synthetics hurt).
 6. **Attention sanity:** view CBAM/attention-gate maps — if they ignore defects, the fusion is mis-wired.
 7. **Then, and only then,** tune lr/schedule/epochs.
-8. **Prove the point:** run the data-ablation curve and the plain-U-Net baseline — if SCN stays flat while the baseline collapses, that *is* your result and your validation of the sir's reason.
+8. **Prove the point:** run the data-ablation curve and the plain-U-Net baseline — if SCN stays flat while the baseline collapses, that *is* your result and your validation of the supervisor's reason.
 
 ---
 
@@ -333,4 +333,4 @@ Severity thresholds and pass/fail rules must come from a real weld-acceptance st
 
 ---
 
-*This document is your single source of truth. Build it in the Part-8 order, keep the Part-2 reason in your report's introduction, and let the Part-9 playbook guide you whenever accuracy stalls.*
+*This document is your single source of truth. Build it in the Part-8 order, keep the Part-2 reason in the report's introduction, and let the Part-9 playbook guide you whenever accuracy stalls.*

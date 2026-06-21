@@ -6,7 +6,7 @@ The formulas these feed are independently verified against the code by
 `scripts/verify_math.py` (all checks pass — see the end of this doc).
 
 Three sources of a value are used throughout:
-- **Architecture-fixed** — set by the sir-mandated design (IWSCN reference paper); not free to change.
+- **Architecture-fixed** — set by the supervisor-mandated design (IWSCN reference paper); not free to change.
 - **Theory/standard** — a standard recipe from the literature (cited).
 - **Empirically chosen** — selected on the validation split / by cross-validation (never on test).
 

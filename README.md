@@ -44,13 +44,20 @@ We pause after each milestone so you can verify it before the next is built.
 
 ## Data note (important)
 
-The dataset is **525 porosity (`G…`) + 525 slag (`GS…`) = 1050 images (balanced)**. Earlier the
+The core dataset is **525 porosity (`G…`) + 525 slag (`GS…`) = 1050 weld images (balanced)**. Earlier the
 porosity folder held 256 `GS…`-named files that were actually slag (byte-identical duplicates),
 which made the two classes contradictory and pinned type-classification at 50%; those were removed
 and genuine porosity images were added to reach 525 each. `scripts/check_contamination.py` confirms
 the folders are clean (no cross-folder duplicates). Defect type (porosity vs slag) is decided by a
 scattering-feature classifier (~0.88 balanced accuracy). Class-weighting stays enabled
 (`configs/model.yaml` → `train.class_weighting`) as a safeguard.
+
+**External data (Student 1, steel-block TFM).** 7 additional artificial-defect images
+(`EXT_*` — 5 porosity, 2 slag) were converted (jet→amplitude, backwall cropped) by
+`scripts/import_external.py` and added to **`data/raw/` → 1057 raw images total**. These are pinned
+to the **train split only** (`src/data/split.py` → `force_train_substr="EXT_"`), so the held-out
+validation/test sets stay 100% weld images and the reported test metrics are uncontaminated. They
+serve as independent external validation (model detects defects in 100% of them).
 
 ## Milestone 1 — Preprocessing (done)
 
