@@ -19,6 +19,19 @@ Thumbs.db
 # scratch / temp
 scratch_*.py
 
+# tool caches
+.pytest_cache/
+.ruff_cache/
+
+# preprocessed array cache — regenerable from data/raw via build_dataset.py
+data/processed/**/*.npy
+
+# quarantined mislabeled images (kept locally as data-cleaning evidence, not shipped)
+data/quarantine/
+
+# stray debug dumps
+/defects.json
+
 # transient, regenerable XAI outputs (the _summary.csv aggregate is tracked)
 data/processed/xai/*.json
 data/processed/xai_overlays/
