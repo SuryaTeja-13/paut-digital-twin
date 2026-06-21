@@ -171,7 +171,7 @@ def main():
     # ---- title + footer ----
     ax.text(7.5, 9.35, "SCN-Attention U-Net  —  PAUT Explainable-AI Digital Twin",
             ha="center", fontsize=14, fontweight="bold")
-    ax.text(7.5, 0.30,
+    ax.text(7.5, 1.05,
             "8,798,151 trainable parameters  |  scattering filters add 0 (fixed buffers)  "
             "|  two heads share one encoder",
             ha="center", fontsize=8.5, color="#333")
@@ -184,9 +184,9 @@ def main():
     ]
     lx = 0.2
     for col, lab in legend:
-        ax.add_patch(mpatches.Rectangle((lx, 0.05), 0.28, 0.28,
+        ax.add_patch(mpatches.Rectangle((lx, 0.30), 0.28, 0.28,
                      facecolor=col, edgecolor=EDGE, linewidth=1))
-        ax.text(lx + 0.36, 0.19, lab, va="center", fontsize=7.5)
+        ax.text(lx + 0.36, 0.44, lab, va="center", fontsize=7.5)
         lx += len(lab) * 0.085 + 0.7
 
     out = Path("docs/figures")
