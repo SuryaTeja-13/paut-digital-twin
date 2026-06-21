@@ -83,11 +83,17 @@ class TypeClassifier:
 
 
 def train_and_save(manifest, out_path, classes=("porosity", "slag"),
-                   J=2, L=8, order=2, shape=(256, 256)):
+                   J=2, L=8, order=2, shape=(256, 256), noise_sigmas=None):
     """Fit the small classifier on FIXED scattering features (sir's IWSCN approach).
 
     Pipeline = log1p (log-scattering, Mallat/Bruna) -> StandardScaler -> MLP(64).
     Selected by 5-fold CV on the train split; the test split is scored once (honest).
+
+    noise_sigmas: if given (e.g. [0.03, 0.06, 0.10]), the TRAIN features are augmented
+    with additive-Gaussian-noisy copies of each image at those σ. This teaches the
+    classifier the noise-perturbed feature distribution so it stays accurate under noise
+    (robustness fix) — the model architecture and the scattering filters are unchanged.
+    The TEST split is always scored on CLEAN images (honest clean accuracy).
     """
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler, FunctionTransformer
@@ -102,7 +108,18 @@ def train_and_save(manifest, out_path, classes=("porosity", "slag"),
     yte = np.array([list(classes).index(c) for c in te["class"]])
 
     print(f"extracting scattering features (train={len(tr)}, test={len(te)}) ...")
-    Xtr = features_for_paths(scat, tr["processed_path"].tolist())
+    tr_patches = np.stack([np.load(p) for p in tr["processed_path"]]).astype(np.float32)
+    Xtr, ytr_aug = features_for_paths(scat, tr["processed_path"].tolist()), ytr
+    if noise_sigmas:
+        rng = np.random.default_rng(0)
+        parts_x, parts_y = [Xtr], [ytr]
+        for s in noise_sigmas:
+            noisy = np.clip(tr_patches + rng.normal(0, s, tr_patches.shape).astype(np.float32), 0, 1)
+            parts_x.append(scatter_features(scat, noisy))
+            parts_y.append(ytr)
+        Xtr, ytr_aug = np.concatenate(parts_x), np.concatenate(parts_y)
+        print(f"noise-augmented train: {len(ytr)} clean + {len(noise_sigmas)} noisy copies "
+              f"-> {len(ytr_aug)} samples (sigmas={noise_sigmas})")
     Xte = features_for_paths(scat, te["processed_path"].tolist())
 
     pipe = make_pipeline(
@@ -112,10 +129,10 @@ def train_and_save(manifest, out_path, classes=("porosity", "slag"),
     )
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
-    cvs = cross_val_score(pipe, Xtr, ytr, cv=cv, scoring="balanced_accuracy")
+    cvs = cross_val_score(pipe, Xtr, ytr_aug, cv=cv, scoring="balanced_accuracy")
     print(f"train CV balanced acc = {cvs.mean():.3f} ± {cvs.std():.3f}")
 
-    pipe.fit(Xtr, ytr)
+    pipe.fit(Xtr, ytr_aug)
     pred = pipe.predict(Xte)
     bal = balanced_accuracy_score(yte, pred)
     print(f"\nTEST balanced acc = {bal:.3f}")
