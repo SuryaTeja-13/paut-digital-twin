@@ -1,0 +1,110 @@
+[
+  {
+    "image": "GS1.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.941628634929657,
+    "n_defects": 2,
+    "health_index": 0.844,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS100_2.jpg",
+    "defect_type": "porosity",
+    "type_confidence": 0.5488927364349365,
+    "n_defects": 1,
+    "health_index": 0.952,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS100_3.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.9880626201629639,
+    "n_defects": 2,
+    "health_index": 0.863,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS101.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.9725147485733032,
+    "n_defects": 1,
+    "health_index": 0.962,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS102.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.8460419774055481,
+    "n_defects": 7,
+    "health_index": 0.911,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS102_1.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.906470537185669,
+    "n_defects": 1,
+    "health_index": 0.987,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS102_2.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.9445041418075562,
+    "n_defects": 3,
+    "health_index": 0.89,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS102_3.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.7004081606864929,
+    "n_defects": 3,
+    "health_index": 0.8,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS103.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.9931550025939941,
+    "n_defects": 6,
+    "health_index": 0.801,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS103_2.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.9979838132858276,
+    "n_defects": 4,
+    "health_index": 0.846,
+    "status": "PASS",
+    "defect_present": true
+  },
+  {
+    "image": "GS104.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.9047016501426697,
+    "n_defects": 5,
+    "health_index": 0.699,
+    "status": "FAIL",
+    "defect_present": true
+  },
+  {
+    "image": "GS105.jpg",
+    "defect_type": "slag",
+    "type_confidence": 0.8683650493621826,
+    "n_defects": 3,
+    "health_index": 0.921,
+    "status": "PASS",
+    "defect_present": true
+  }
+]

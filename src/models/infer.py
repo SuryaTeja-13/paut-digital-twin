@@ -56,6 +56,27 @@ def predict_patch(model, patch: np.ndarray, device=None, return_features: bool =
     return res
 
 
+@torch.no_grad()
+def predict_batch(model, patches, device=None):
+    """
+    Mini-batch inference: run N patches through the model in ONE forward pass.
+
+    patches: list of (H,W) or (1,H,W) float32 arrays in [0,1], all the same size.
+    Returns a list of per-image dicts {seg, seg_prob, cls_idx, cls_prob} — same shape
+    as predict_patch, but the expensive forward is shared across the whole batch.
+    """
+    device = device or next(model.parameters()).device
+    arr = np.stack([p[0] if p.ndim == 3 else p for p in patches]).astype(np.float32)  # (N,H,W)
+    x = torch.from_numpy(np.ascontiguousarray(arr)).unsqueeze(1).to(device)           # (N,1,H,W)
+    out = model(x)
+    seg_prob = F.softmax(out["seg"], dim=1)                                            # (N,C,H,W)
+    cls_prob = F.softmax(out["cls"], dim=1)                                            # (N,2)
+    segs = seg_prob.argmax(1).cpu().numpy().astype(np.uint8)
+    sp, cp = seg_prob.cpu().numpy(), cls_prob.cpu().numpy()
+    return [{"seg": segs[i], "seg_prob": sp[i],
+             "cls_idx": int(cp[i].argmax()), "cls_prob": cp[i]} for i in range(len(patches))]
+
+
 def predict_image(model, image_path: str, preprocess_cfg: dict, device=None,
                   return_features: bool = False):
     """Raw image file -> preprocess to a patch -> predict. Returns (result, patch, meta)."""

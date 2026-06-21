@@ -22,7 +22,7 @@ import numpy as np
 import yaml
 
 from .data.preprocess import process_image
-from .models.infer import load_model, predict_patch, get_device
+from .models.infer import load_model, predict_patch, predict_batch, get_device
 from .characterize.characterize import characterize_mask, summarize
 from .twin.twin import weld_health
 
@@ -53,31 +53,76 @@ class Pipeline:
             from .models.type_classifier import TypeClassifier
             self.type_clf = TypeClassifier.load(tc_path)
 
-    def analyze(self, image_path: str, run_xai: bool = True, pixel_to_mm: float = None) -> dict:
-        # 1. preprocess -> amplitude patch
-        patch, meta = process_image(image_path, self.pre)
+    def _type_of(self, patch):
+        """(type_index, confidence) from the scattering classifier, or (None, None)."""
+        if self.type_clf is None:
+            return None, None
+        from .models.type_classifier import scatter_features
+        feat = scatter_features(self.model.scat, patch[None].astype(np.float32), self.device)
+        tidx, tprob = self.type_clf.predict_features(feat)
+        ti = int(tidx[0])
+        return ti, float(tprob[0][ti])
 
-        # 2. model -> segmentation mask + class
-        pred = predict_patch(self.model, patch, self.device)
+    def analyze(self, image_path: str, run_xai: bool = True, pixel_to_mm: float = None) -> dict:
+        """Single image -> full result. (Mini-batch many images with analyze_batch.)"""
+        patch, meta = process_image(image_path, self.pre)            # 1. preprocess
+        pred = predict_patch(self.model, patch, self.device)          # 2. model
+        type_idx, type_prob = self._type_of(patch)                    # 3. type
+        return self._assemble(image_path, patch, meta, pred, type_idx, type_prob,
+                              run_xai, pixel_to_mm)
+
+    def analyze_batch(self, image_paths, batch_size: int = 8, run_xai: bool = False,
+                      pixel_to_mm: float = None) -> list:
+        """
+        Mini-batch inference over many images (sir's points 6+7): the model forward and
+        the scattering type-features are computed in batches of `batch_size`, then each
+        image's characterization + twin is assembled. XAI is off by default (per-image,
+        slower) so a live feed stays responsive.
+        """
+        from .models.type_classifier import scatter_features
+        results = []
+        for start in range(0, len(image_paths), batch_size):
+            chunk = image_paths[start:start + batch_size]
+            patches, metas = [], []
+            for p in chunk:
+                patch, meta = process_image(p, self.pre)
+                patches.append(patch)
+                metas.append(meta)
+            preds = predict_batch(self.model, patches, self.device)   # ONE forward per batch
+            tidx = tprob = None
+            if self.type_clf is not None:
+                feats = scatter_features(
+                    self.model.scat,
+                    np.stack([pt.astype(np.float32) for pt in patches]), self.device)
+                tidx, tprob = self.type_clf.predict_features(feats)
+            for i, (path, patch, meta, pred) in enumerate(zip(chunk, patches, metas, preds)):
+                if tidx is not None:
+                    ti = int(tidx[i])
+                    tp = float(tprob[i][ti])
+                else:
+                    ti, tp = None, None
+                results.append(self._assemble(path, patch, meta, pred, ti, tp,
+                                              run_xai, pixel_to_mm))
+        return results
+
+    def _assemble(self, image_path, patch, meta, pred, type_idx, type_prob,
+                  run_xai, pixel_to_mm) -> dict:
+        """Build the full result dict from a (possibly batched) prediction + type call."""
         seg, seg_prob = pred["seg"], pred["seg_prob"]
 
-        # 3. TYPE: scattering-feature classifier (reliable). Detection comes from
-        #    the segmentation; we apply the image-level type to all detected
-        #    defects (every image is single-type, design_decisions.md §2).
+        # TYPE: scattering-feature classifier (reliable). Detection comes from the
+        # segmentation; we apply the image-level type to all detected defects (every
+        # image is single-type, design_decisions.md §2).
         if pixel_to_mm is None:
             pixel_to_mm = self.char.get("pixel_to_mm", self.pre.get("pixel_to_mm", 1.0))
 
         type_conf, type_method = None, "segmentation"
         char_mask = seg
-        if self.type_clf is not None:
-            from .models.type_classifier import scatter_features
-            feat = scatter_features(self.model.scat, patch[None].astype(np.float32), self.device)
-            tidx, tprob = self.type_clf.predict_features(feat)
-            tidx = int(tidx[0])
-            type_conf = float(tprob[0][tidx])
+        if type_idx is not None:
+            type_conf = type_prob
             type_method = "scattering_classifier"
             # relabel ALL detected foreground to the image-level type
-            char_mask = np.where(seg > 0, tidx + 1, 0).astype(seg.dtype)
+            char_mask = np.where(seg > 0, type_idx + 1, 0).astype(seg.dtype)
 
         defects = characterize_mask(char_mask, self.classes, pixel_to_mm,
                                     self.char.get("severity"),

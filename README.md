@@ -323,6 +323,13 @@ characterize → XAI → health`, one call returns everything.
 py -3.14 -m src.pipeline --image data/raw/slag/GS1.jpg --out defects.json
 ```
 
+**Batch / mini-batch inference** — [scripts/batch_infer.py](scripts/batch_infer.py): run a whole
+folder through the pipeline with one model forward per mini-batch (`Pipeline.analyze_batch`,
+`predict_batch`). Writes a per-image table (type, defect count, health, PASS/REVIEW/FAIL).
+```bash
+py -3.14 -m scripts.batch_infer --dir data/raw/slag --limit 15 --batch-size 8 --time-compare
+```
+
 **Digital-twin health** — [src/twin/twin.py](src/twin/twin.py): rolls per-defect severities into a
 health index (1 − Σseverity/capacity) and a PASS / REVIEW / FAIL status. *(Thresholds are
 placeholders — calibrate to ISO 5817 / ASME with an expert; design_decisions.md §3.13.)*
