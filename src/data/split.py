@@ -33,13 +33,19 @@ def weld_id_from_stem(stem: str) -> str:
 
 
 def assign_splits(records: list[dict], ratios, seed: int,
-                  stratify_by_class: bool = True, group_by_weld: bool = True) -> dict:
+                  stratify_by_class: bool = True, group_by_weld: bool = True,
+                  force_train_substr: str | None = "EXT_") -> dict:
     """
     Assign a split label to every record.
 
     records : list of dicts, each with keys 'image_id', 'class', 'weld_id'.
     ratios  : (train, val, test) fractions summing to ~1.
     Returns : {image_id -> 'train'|'val'|'test'}.
+
+    force_train_substr: records whose image_id contains this substring are pinned to
+    the TRAIN split and excluded from the val/test draw. Used for out-of-distribution
+    extra data (e.g. Student-1's steel-block defects, prefixed 'EXT_') so it enriches
+    training without contaminating the honest weld-only val/test metrics.
 
     Algorithm (per class, so stratification is exact):
       - gather groups (weld_id -> [records]); if not group_by_weld, each image
@@ -60,6 +66,16 @@ def assign_splits(records: list[dict], ratios, seed: int,
         by_class[key].append(r)
 
     for cls, recs in sorted(by_class.items()):
+        # pin forced (out-of-distribution extra) records to train, keep them out of
+        # the val/test ratio draw so honest metrics stay weld-only
+        if force_train_substr:
+            forced = [r for r in recs if force_train_substr in r["image_id"]]
+            for r in forced:
+                out[r["image_id"]] = "train"
+            recs = [r for r in recs if force_train_substr not in r["image_id"]]
+            if not recs:
+                continue
+
         # build groups within this class
         groups: dict[str, list] = defaultdict(list)
         for r in recs:
