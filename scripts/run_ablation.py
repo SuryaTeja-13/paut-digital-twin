@@ -45,6 +45,33 @@ def run_one(fraction, scattering, epochs, config, smoke, ckpt_dir):
     return train_main(argv) or {}
 
 
+def _make_ablation_config(src_config, keep_aug):
+    """Derive the config used for the ablation.
+
+    The data-efficiency ablation isolates ONE variable — the scattering prior —
+    versus training-set size. The composite (porosity+slag blend) and additive-noise
+    augmentation in the production config are multi-defect / noise-robustness tricks;
+    they are confounds here, and at small fractions they consume scarce single-defect
+    images and destabilise training. So we disable them for the ablation (base
+    geometric augmentation is kept). Pass --keep-aug to use the production config as-is.
+    """
+    if keep_aug:
+        return src_config
+    import yaml
+    with open(src_config) as f:
+        cfg = yaml.safe_load(f)
+    aug = cfg.get("augment", {})
+    aug["composite_p"] = 0.0
+    aug["noise_p"] = 0.0
+    cfg["augment"] = aug
+    derived = os.path.join("configs", "_ablation.yaml")
+    with open(derived, "w") as f:
+        yaml.safe_dump(cfg, f, sort_keys=False)
+    print("ablation config: composite/noise augmentation DISABLED "
+          "(isolating the scattering prior). ->", derived)
+    return derived
+
+
 def main():
     ap = argparse.ArgumentParser(description="Data-ablation curve (SCN vs plain U-Net)")
     ap.add_argument("--config", default="configs/model.yaml")
@@ -52,7 +79,12 @@ def main():
     ap.add_argument("--fractions", type=float, nargs="+", default=[1.0, 0.75, 0.5, 0.25, 0.1])
     ap.add_argument("--out", default="data/processed/ablation")
     ap.add_argument("--smoke", action="store_true", help="tiny run to test wiring only")
+    ap.add_argument("--keep-aug", action="store_true",
+                    help="use the production augmentation as-is (default: disable "
+                         "composite/noise aug, which confounds the data-efficiency test)")
     args = ap.parse_args()
+
+    args.config = _make_ablation_config(args.config, args.keep_aug)
 
     os.makedirs(args.out, exist_ok=True)
     ckpt_dir = os.path.join("checkpoints", "ablation")     # isolated from production ckpt
