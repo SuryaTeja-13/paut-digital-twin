@@ -205,12 +205,6 @@ def build():
         Spacer(1, 55 * mm),
         Paragraph("PAUT Explainable-AI Digital Twin", st["cover_title"]),
         Paragraph("Architectural Solution Approach", st["cover_sub"]),
-        Spacer(1, 4 * mm),
-        HRFlowable(width="40%", thickness=1.5, color=ACCENT, spaceBefore=2, spaceAfter=10,
-                   hAlign="LEFT"),
-        Paragraph("Weld defect inspection from Phased Array Ultrasonic Testing (TFM) images — "
-                  "detection, classification, characterization, explainable AI, and a "
-                  "Digital-Twin health dashboard.", st["cover_sub"]),
         PageBreak(),
     ]
 
@@ -259,13 +253,11 @@ def build():
         ]
 
     def footer(canvas, doc):
+        # plain page number only — no rule, no running title
         canvas.saveState()
-        canvas.setFont("DejaVu", 8)
-        canvas.setFillColor(colors.HexColor("#888888"))
-        canvas.drawString(20 * mm, 12 * mm, "PAUT Explainable-AI Digital Twin — Solution Approach")
-        canvas.drawRightString(190 * mm, 12 * mm, f"Page {doc.page}")
-        canvas.setStrokeColor(RULE)
-        canvas.line(20 * mm, 15 * mm, 190 * mm, 15 * mm)
+        canvas.setFont("DejaVu", 9)
+        canvas.setFillColor(colors.black)
+        canvas.drawCentredString(105 * mm, 12 * mm, str(doc.page))
         canvas.restoreState()
 
     doc = SimpleDocTemplate(

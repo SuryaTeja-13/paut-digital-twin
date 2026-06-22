@@ -191,11 +191,6 @@ def build(md_path, out_path, title, subtitle, footer_text, add_ablation=False):
         Spacer(1, 52 * mm),
         Paragraph(title, st["cover_title"]),
         Paragraph(subtitle, st["cover_sub"]),
-        Spacer(1, 3 * mm),
-        HRFlowable(width="40%", thickness=1.5, color=ACCENT, spaceBefore=2, spaceAfter=10,
-                   hAlign="LEFT"),
-        Paragraph("PAUT Explainable-AI Digital Twin — weld defect inspection from Total Focusing "
-                  "Method (TFM) images.", st["cover_sub"]),
         PageBreak(),
     ]
 
@@ -240,11 +235,10 @@ def build(md_path, out_path, title, subtitle, footer_text, add_ablation=False):
         ]
 
     def footer(canvas, doc):
+        # plain page number only — no rule, no running title (looks hand-prepared)
         canvas.saveState()
-        canvas.setFont("DejaVu", 8); canvas.setFillColor(colors.HexColor("#888888"))
-        canvas.drawString(20 * mm, 12 * mm, footer_text)
-        canvas.drawRightString(190 * mm, 12 * mm, f"Page {doc.page}")
-        canvas.setStrokeColor(RULE); canvas.line(20 * mm, 15 * mm, 190 * mm, 15 * mm)
+        canvas.setFont("DejaVu", 9); canvas.setFillColor(colors.black)
+        canvas.drawCentredString(105 * mm, 12 * mm, str(doc.page))
         canvas.restoreState()
 
     doc = SimpleDocTemplate(out_path, pagesize=A4, leftMargin=20 * mm, rightMargin=20 * mm,
