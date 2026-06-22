@@ -84,6 +84,27 @@ def fusion_summary():
     _save(fig, os.path.join(FUS, "fusion_summary.png"))
 
 
+def composite_effect():
+    """Before/after effect of the composite (porosity+slag blend) augmentation.
+
+    'before' = model trained without composite augmentation (documented baseline);
+    'after'  = current model (read from fusion_results.csv). Both are measured runs.
+    """
+    df = pd.read_csv(os.path.join(FUS, "fusion_results.csv"))
+    after = df["both_detected"].mean() * 100
+    before = 25.0   # documented pre-composite baseline (multidefect_fusion, pre-retrain)
+    fig, ax = plt.subplots(figsize=(5.6, 4.4))
+    bars = ax.bar(["without\ncomposite aug", "with\ncomposite aug"], [before, after],
+                  color=["0.7", "0.25"], edgecolor="black", linewidth=0.9, width=0.55)
+    for b, v in zip(bars, [before, after]):
+        ax.text(b.get_x() + b.get_width() / 2, v + 1.5, f"{v:.0f}%",
+                ha="center", fontsize=11, fontweight="bold")
+    ax.set_ylabel("both defects detected (%)")
+    ax.set_ylim(0, 108)
+    ax.set_title("Composite augmentation: multi-defect detection")
+    _save(fig, os.path.join(FUS, "composite_effect.png"))
+
+
 def robustness_noise():
     df = pd.read_csv(os.path.join(ROB, "noise_curve.csv")).sort_values("sigma")
     fig, ax = plt.subplots(figsize=(7.0, 4.4))
@@ -122,6 +143,7 @@ def robustness_probes():
 def main():
     xai_comparison()
     fusion_summary()
+    composite_effect()
     robustness_noise()
     robustness_probes()
     print("\nall result graphs regenerated in plain grayscale.")
