@@ -43,14 +43,15 @@ pdfmetrics.registerFont(TTFont("DejaVuMono", os.path.join(FONT_DIR, "DejaVuSansM
 pdfmetrics.registerFontFamily("DejaVu", normal="DejaVu", bold="DejaVu-Bold",
                               italic="DejaVu-Oblique", boldItalic="DejaVu-Bold")
 
-INK = colors.HexColor("#1a1a1a")
-ACCENT = colors.HexColor("#1f4e79")     # deep blue
-ACCENT2 = colors.HexColor("#2c6da3")
-CODE_BG = colors.HexColor("#f4f6f8")
-CODE_BORDER = colors.HexColor("#d7dde3")
-TBL_HEAD = colors.HexColor("#1f4e79")
-TBL_ALT = colors.HexColor("#eef3f8")
-RULE = colors.HexColor("#c9d3dc")
+# Plain black-on-white styling (no colour) — reads like a standard Word document.
+INK = colors.black
+ACCENT = colors.black
+ACCENT2 = colors.black
+CODE_BG = colors.HexColor("#f5f5f5")        # neutral grey, not a colour
+CODE_BORDER = colors.HexColor("#cccccc")
+TBL_HEAD = colors.HexColor("#e6e6e6")        # light grey header band
+TBL_ALT = colors.white                       # no row shading
+RULE = colors.HexColor("#999999")
 
 
 def styles():
@@ -67,14 +68,13 @@ def styles():
                                  bulletIndent=4),
         "quote": ParagraphStyle("quote", fontName="DejaVu-Oblique", fontSize=9.8, leading=14,
                                 textColor=colors.HexColor("#333333"), leftIndent=10,
-                                spaceBefore=4, spaceAfter=8, borderColor=ACCENT2,
-                                borderWidth=0, backColor=colors.HexColor("#f0f4f8")),
+                                spaceBefore=4, spaceAfter=8, borderWidth=0),
         "code": ParagraphStyle("code", fontName="DejaVuMono", fontSize=7.4, leading=9.6,
-                               textColor=colors.HexColor("#143055")),
+                               textColor=INK),
         "cell": ParagraphStyle("cell", fontName="DejaVu", fontSize=8.8, leading=12,
                                textColor=INK),
         "cellh": ParagraphStyle("cellh", fontName="DejaVu-Bold", fontSize=8.8, leading=12,
-                                textColor=colors.white),
+                                textColor=INK),
         "cover_title": ParagraphStyle("ct", fontName="DejaVu-Bold", fontSize=26, leading=32,
                                       textColor=ACCENT, spaceAfter=8),
         "cover_sub": ParagraphStyle("cs", fontName="DejaVu", fontSize=12.5, leading=18,
@@ -87,8 +87,8 @@ def styles():
 def inline(text: str) -> str:
     text = html.escape(text, quote=False)
     text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
-    text = re.sub(r"`(.+?)`", lambda m: f'<font name="DejaVuMono" size="9" '
-                  f'color="#143055">{m.group(1)}</font>', text)
+    text = re.sub(r"`(.+?)`", lambda m: f'<font name="DejaVuMono" size="9">'
+                  f'{m.group(1)}</font>', text)
     text = re.sub(r"\[(.+?)\]\((.+?)\)", r"\1", text)   # drop link URLs, keep label
     return text
 
@@ -186,10 +186,8 @@ def table_flowable(rows, st):
         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("LINEBELOW", (0, 0), (-1, -1), 0.4, RULE),
         ("BOX", (0, 0), (-1, -1), 0.5, RULE),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.9, INK),   # solid rule under the header row
     ]
-    for r in range(1, len(data)):
-        if r % 2 == 0:
-            sty.append(("BACKGROUND", (0, r), (-1, r), TBL_ALT))
     t.setStyle(TableStyle(sty))
     return t
 
