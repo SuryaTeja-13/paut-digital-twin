@@ -108,16 +108,22 @@ def main():
                             round(m["best_val_dice_fg"], 4), round(m["best_val_cls_acc"], 4)])
     print(f"\nresults -> {csv_path}")
 
-    # plot dice_fg vs data fraction
+    # plot dice_fg vs data fraction (plain grayscale — no colour)
+    plt.rcParams.update({"figure.facecolor": "white", "axes.facecolor": "white",
+                         "axes.edgecolor": "black", "text.color": "black",
+                         "axes.labelcolor": "black", "xtick.color": "black",
+                         "ytick.color": "black"})
     fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-    for scat, label, style in [(True, "SCN-Attention U-Net", "o-"),
-                               (False, "plain U-Net (baseline)", "s--")]:
+    for scat, label, style, col in [(True, "SCN-Attention U-Net", "o-", "black"),
+                                    (False, "plain U-Net (baseline)", "s--", "0.5")]:
         pts = sorted(results[scat], key=lambda m: m["data_fraction"])
         if not pts:
             continue
         fr = [m["data_fraction"] * 100 for m in pts]
-        ax[0].plot(fr, [m["best_val_dice_fg"] for m in pts], style, label=label)
-        ax[1].plot(fr, [m["best_val_cls_acc"] for m in pts], style, label=label)
+        ax[0].plot(fr, [m["best_val_dice_fg"] for m in pts], style, color=col,
+                   linewidth=1.8, markersize=6, label=label)
+        ax[1].plot(fr, [m["best_val_cls_acc"] for m in pts], style, color=col,
+                   linewidth=1.8, markersize=6, label=label)
     ax[0].set_title("Segmentation: val dice_fg vs training-data size")
     ax[1].set_title("Classification: val accuracy vs training-data size")
     for a in ax:
