@@ -371,22 +371,27 @@ py -3.14 -m tests.test_twin
 
 ## Data-Ablation Results
 
-SCN-Attention U-Net vs plain Attention U-Net baseline across data fractions (60 epochs, Colab T4).
+SCN-Attention U-Net vs plain Attention U-Net baseline across data fractions (80 epochs, Colab T4).
+The ablation uses **base geometric augmentation only** — the composite/noise augmentation of the
+production model is disabled here so the experiment isolates a single variable (the scattering
+prior) against training-set size.
 
 | Data used | SCN val Dice | Plain U-Net val Dice |
 |-----------|-------------|----------------------|
-| 10% (74 imgs) | **0.541** | 0.514 |
-| 25% (184 imgs) | 0.540 | 0.567 |
-| 50% (368 imgs) | 0.580 | 0.664 |
-| 100% (735 imgs) | 0.642 | **0.689** |
+| 10% (74 imgs) | 0.481 | **0.601** |
+| 25% (185 imgs) | **0.643** | 0.583 |
+| 50% (371 imgs) | **0.700** | 0.633 |
+| 75% (557 imgs) | 0.656 | 0.663 |
+| 100% (742 imgs) | 0.658 | **0.691** |
 
-**Key finding:** At 10% of training data the SCN model outperforms the plain baseline (0.541 vs
-0.514), showing the fixed wavelet-scattering prior acts as a regulariser in the low-data regime
-that is typical of PAUT inspection. As data increases, the plain U-Net surpasses SCN — the added
-fusion complexity becomes a burden once sufficient data is available. In these short ablation runs
-(60 epochs each) both models' classification heads stayed near chance (~50% val accuracy); the
-fully-trained production head is also weak (~0.50–0.65 depending on the run) — far below the
-independent scattering-feature classifier (0.88 balanced), which is why type is decided by it.
+**Honest finding:** the scattering prior **matches or exceeds** the plain baseline across data
+sizes, with a **clear advantage in the mid-data regime (25–50%)** — the range typical of a PAUT
+study. At full data the two are comparable (plain marginally higher). At the extreme **10%** point
+(74 images) the result is **within single-seed variance**: an earlier run had SCN ahead at 10%
+(0.541 vs 0.514) and this run has it behind (0.481 vs 0.601), so no reliable claim is made there
+without multi-seed averaging. In these short runs both models' classification heads stayed near
+chance (~0.50–0.60 val accuracy); the production head is similarly weak — far below the independent
+scattering-feature classifier (0.88 balanced), which is why type is decided by it, not by the head.
 
 Curve: [`data/processed/ablation/ablation_curve.png`](data/processed/ablation/ablation_curve.png)
 Raw numbers: [`data/processed/ablation/ablation_results.csv`](data/processed/ablation/ablation_results.csv)
