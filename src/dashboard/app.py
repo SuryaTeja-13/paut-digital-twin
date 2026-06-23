@@ -114,12 +114,56 @@ def status_banner(h):
         unsafe_allow_html=True)
 
 
-def render_live_feed(pipe):
-    """Continuous, automatic inspection of a folder of images as a live 'video feed' (sir 8).
+def _feed_full_detail(res, unit="px"):
+    """Full per-frame detail (Explainability + Defects) shown when the feed is paused."""
+    tabs = st.tabs(["🧠 Explainability", "📋 Defects"])
+    with tabs[0]:
+        if "xai" in res:
+            x = res["xai"]
+            c1, c2 = st.columns(2)
+            c1.pyplot(heat_fig(res["patch"], x["cam"], f"Seg-Grad-CAM ({x['target_type']})"))
+            c1.success(f"**Trust score {x['trust_score']:.2f}** — deletion {x['deletion_auc']:.2f} "
+                       f"(↓ better) · insertion {x['insertion_auc']:.2f} (↑ better) · "
+                       f"peak-on-defect {x['pointing_hit']}")
+            att = x.get("attention", {})
+            if att:
+                key = "gate_up1" if "gate_up1" in att else list(att)[0]
+                c2.pyplot(heat_fig(res["patch"], att[key], f"Model's intrinsic attention ({key})"))
+                c2.caption("The model's own attention gate — faithful-by-construction explanation.")
+        else:
+            st.info("No explainability for this frame (computed only when paused).")
+    with tabs[1]:
+        defects = res["defects"]
+        st.subheader(f"Defects ({len(defects)})")
+        if not defects:
+            st.success("No defect detected (mask essentially empty).")
+        else:
+            table = pd.DataFrame([{
+                "id": d["id"], "type": d["type"], "severity": d["severity"],
+                f"length_{unit}": d["length_mm"], f"width_{unit}": d["width_mm"],
+                "area_px": d["area_px"], "orient_deg": d["orientation_deg"],
+                "aspect": d["aspect_ratio"], "confidence": d["confidence"],
+            } for d in defects])
+            st.dataframe(table, width="stretch", hide_index=True)
+            inst_src = res.get("char_mask", res["seg"])
+            cols = st.columns(min(4, len(defects)))
+            for i, d in enumerate(defects):
+                with cols[i % len(cols)]:
+                    st.pyplot(defect_crop_fig(res["patch"], inst_src, d))
+                    st.markdown(
+                        f"**#{d['id']} · {d['type']}** "
+                        f"<span style='color:{SEVERITY_COLOR[d['severity']]}'>●</span> {d['severity']}<br>"
+                        f"len {d['length_mm']} · wid {d['width_mm']} {unit}<br>"
+                        f"area {d['area_px']} px · {d['orientation_deg']}°",
+                        unsafe_allow_html=True)
 
-    Processes every frame in sequence (no manual one-at-a-time selection), updating the display
-    in place with the per-frame detection, the digital-twin health, an explicit calculation
-    proof, and a running health timeline + PASS/REVIEW/FAIL tally.
+
+def render_live_feed(pipe):
+    """Continuous, automatic inspection of a folder as a live 'video feed' (sir 8).
+
+    A session-state player: Play streams frames automatically; Pause/Prev/Next step
+    manually. 'Show full detail' pauses and renders the explainability + defect
+    measurements for the current frame — the same depth as single-image mode.
     """
     st.subheader("🎞️ Continuous inspection feed")
     st.caption("Automatic real-time inspection over a sequence of welds (incl. no-defect frames).")
@@ -134,49 +178,86 @@ def render_live_feed(pipe):
         st.warning(f"No images found in `{folder}`. Build the demo set: "
                    "`py -3.14 -m scripts.make_demo_feed`")
         return
-    if not c[0].button("▶ Run continuous feed", type="primary"):
-        st.info("Press ▶ to stream the sequence through the digital twin.")
-        return
 
-    frame_box, proof_box, trend_box = st.empty(), st.empty(), st.empty()
-    timeline = []
-    for i, p in enumerate(paths, 1):
-        res = pipe.analyze(p, run_xai=False)
-        hh = res["health"]
-        timeline.append({"frame": i, "image": res["image"], "health": hh["health_index"],
-                         "status": hh["status"], "type": res["defect_type"] or "no defect",
-                         "defects": hh["n_defects"]})
-        with frame_box.container():
-            status_banner(hh)
-            left, right = st.columns([2, 1])
-            left.pyplot(weld_map_fig(res["patch"], res["seg"], res["defects"]))
-            right.markdown(f"### Frame {i} / {len(paths)}\n`{res['image']}`")
-            right.metric("Defect type", res["defect_type"] or "no defect")
-            right.metric("Defects", hh["n_defects"])
-            right.metric("Health index", f"{hh['health_index']:.3f}")
-        with proof_box.container():
-            cap, tot = hh["capacity"], hh["total_severity"]
-            ratio = min(1.0, tot / cap) if cap else 0.0
-            st.markdown("**Health calculation (proof) —** `health = 1 − min(1, Σseverity / capacity)`")
-            st.code(
-                f"Σ severity   = {tot:.3f}      (critical {hh['counts']['critical']}, "
-                f"moderate {hh['counts']['moderate']}, minor {hh['counts']['minor']})\n"
-                f"capacity     = {cap:.1f}\n"
-                f"health index = 1 − min(1, {tot:.3f} / {cap:.1f}) "
-                f"= 1 − {ratio:.3f} = {hh['health_index']:.3f}\n"
-                f"status       = {hh['status']}   "
-                f"(FAIL if any critical; REVIEW if health < 0.7 or ≥2 moderate; else PASS)",
-                language="text")
-        with trend_box.container():
-            df = pd.DataFrame(timeline)
-            t1, t2 = st.columns([2, 1])
-            t1.line_chart(df.set_index("frame")["health"], height=200)
-            t2.write("**Tally so far**")
-            t2.write({k: int((df["status"] == k).sum()) for k in ("PASS", "REVIEW", "FAIL")})
-        time.sleep(delay)
+    ss = st.session_state
+    ss.setdefault("feed_idx", 0)
+    ss.setdefault("feed_playing", False)
+    ss.setdefault("feed_timeline", [])
+    ss.feed_idx = min(ss.feed_idx, len(paths) - 1)
 
-    st.success(f"Feed complete — {len(timeline)} frames inspected.")
-    st.dataframe(pd.DataFrame(timeline), use_container_width=True)
+    b = st.columns(5)
+    if b[0].button("▶ Play", type="primary"):
+        ss.feed_playing = True
+    if b[1].button("⏸ Pause"):
+        ss.feed_playing = False
+    if b[2].button("⏮ Prev"):
+        ss.feed_playing = False
+        ss.feed_idx = max(0, ss.feed_idx - 1)
+    if b[3].button("⏭ Next"):
+        ss.feed_playing = False
+        ss.feed_idx = min(len(paths) - 1, ss.feed_idx + 1)
+    if b[4].button("⟲ Restart"):
+        ss.feed_playing = False
+        ss.feed_idx = 0
+        ss.feed_timeline = []
+
+    show_detail = st.checkbox("🔍 Show full detail (explainability + measurements) for this frame "
+                              "— pauses the feed")
+    if show_detail:
+        ss.feed_playing = False
+
+    # analyse current frame; XAI only when paused for detail (it is the slow part)
+    p = paths[ss.feed_idx]
+    res = pipe.analyze(p, run_xai=show_detail)
+    hh = res["health"]
+
+    rec = {"frame": ss.feed_idx + 1, "image": res["image"], "health": hh["health_index"],
+           "status": hh["status"], "type": res["defect_type"] or "no defect",
+           "defects": hh["n_defects"]}
+    ss.feed_timeline = [r for r in ss.feed_timeline if r["frame"] != rec["frame"]]
+    ss.feed_timeline.append(rec)
+    ss.feed_timeline.sort(key=lambda r: r["frame"])
+
+    status_banner(hh)
+    left, right = st.columns([2, 1])
+    left.pyplot(weld_map_fig(res["patch"], res["seg"], res["defects"]))
+    right.markdown(f"### Frame {ss.feed_idx + 1} / {len(paths)}\n`{res['image']}`")
+    right.metric("Defect type", res["defect_type"] or "no defect")
+    right.metric("Defects", hh["n_defects"])
+    right.metric("Health index", f"{hh['health_index']:.3f}")
+
+    cap, tot = hh["capacity"], hh["total_severity"]
+    ratio = min(1.0, tot / cap) if cap else 0.0
+    st.markdown("**Health calculation (proof) —** `health = 1 − min(1, Σseverity / capacity)`")
+    st.code(
+        f"Σ severity   = {tot:.3f}      (critical {hh['counts']['critical']}, "
+        f"moderate {hh['counts']['moderate']}, minor {hh['counts']['minor']})\n"
+        f"capacity     = {cap:.1f}\n"
+        f"health index = 1 − min(1, {tot:.3f} / {cap:.1f}) "
+        f"= 1 − {ratio:.3f} = {hh['health_index']:.3f}\n"
+        f"status       = {hh['status']}   "
+        f"(FAIL if any critical; REVIEW if health < 0.7 or ≥2 moderate; else PASS)",
+        language="text")
+
+    if show_detail:
+        st.markdown("---")
+        st.markdown(f"#### 🔍 Full detail — frame {ss.feed_idx + 1}: `{res['image']}`")
+        _feed_full_detail(res)
+
+    df = pd.DataFrame(ss.feed_timeline)
+    t1, t2 = st.columns([2, 1])
+    t1.line_chart(df.set_index("frame")["health"], height=200)
+    t2.write("**Tally so far**")
+    t2.write({k: int((df["status"] == k).sum()) for k in ("PASS", "REVIEW", "FAIL")})
+
+    if ss.feed_playing:
+        if ss.feed_idx < len(paths) - 1:
+            time.sleep(delay)
+            ss.feed_idx += 1
+            st.rerun()
+        else:
+            ss.feed_playing = False
+            st.success(f"Feed complete — all {len(paths)} frames inspected.")
 
 
 # ─────────────── header + input ───────────────
@@ -239,7 +320,7 @@ with tab_overview:
     left, right = st.columns(2)
     left.pyplot(weld_map_fig(res["patch"], res["seg"], defects))
     right.markdown("**Original (input)**")
-    right.image(img_path, use_container_width=True)
+    right.image(img_path, width="stretch")
 
 # ── Explainability ──
 with tab_xai:
@@ -272,7 +353,7 @@ with tab_defects:
             "area_px": d["area_px"], "orient_deg": d["orientation_deg"],
             "aspect": d["aspect_ratio"], "confidence": d["confidence"],
         } for d in defects])
-        st.dataframe(table, use_container_width=True, hide_index=True)
+        st.dataframe(table, width="stretch", hide_index=True)
         st.download_button("⬇️ Download defects.json",
                            json.dumps(_json_safe(res), indent=2),
                            file_name=f"{os.path.splitext(res['image'])[0]}_defects.json")
