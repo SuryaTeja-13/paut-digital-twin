@@ -86,7 +86,7 @@ to scanner/gain differences.
 | Param | Value | Why this value | How chosen |
 |-------|-------|----------------|-----------|
 | pipeline | log1p → StandardScaler → MLP(64) | log1p is the standard *log-scattering* renormalisation (Mallat/Bruna); StandardScaler centres features; a tiny 64-unit MLP is the "small classifier" of the IWSCN recipe. | 5-fold CV on train (`tune_type_classifier.py`). |
-| MLP hidden | 64 | Big enough to separate the two texture classes, small enough not to overfit 735 images. | CV-selected over LogReg / SVM / MLP. |
+| MLP hidden | 64 | Big enough to separate the two texture classes, small enough not to overfit the small training set. | CV-selected over LogReg / SVM / MLP. |
 | `alpha` (L2) | 1e-2 | MLP weight decay; CV-tuned for best balanced accuracy. | CV. |
 | result | **0.88** balanced (vs 0.80 plain LogReg) | — | CV 0.87 ≈ test 0.88 → generalises. |
 

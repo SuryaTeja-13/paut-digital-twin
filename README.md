@@ -271,12 +271,13 @@ Model-appropriate XAI (architecture.md Part 6), matched to each head:
 ```bash
 py -3.14 -m src.xai.run --config configs/xai.yaml --split test
 ```
-Outputs a 4-panel overlay (amplitude · Grad-CAM · attention · GT mask) and a per-image
+Outputs a 4-panel overlay (amplitude · Grad-CAM++ · attention · GT mask) and a per-image
 JSON with the trust score, in `data/processed/xai/` and `data/processed/xai_overlays/`.
 
-On a 16-image validation sample: mean **trust 0.91**, deletion AUC 0.12 (lower=better), insertion AUC
-0.86 (higher=better), pointing-game 1.00 — the Grad-CAM explanations are faithful. (Reproduce:
-`py -3.14 -m src.xai.run --config configs/xai.yaml --split val --limit 16`; writes
+The deployed explainer is **Grad-CAM++** — the most faithful method in our comparison
+(`docs/xai_method_comparison.md`): mean **trust 0.97**, deletion AUC 0.05 (lower=better),
+insertion AUC 0.95 (higher=better), pointing-game 1.00. (Reproduce:
+`py -3.14 -m src.xai.run --config configs/xai.yaml --split test`; writes
 `data/processed/xai/_summary.csv`.)
 
 > SHAP on the classification head (architecture.md §6.1) is left as an optional add — the
@@ -349,7 +350,7 @@ placeholders — calibrate to ISO 5817 / ASME with an expert; design_decisions.m
 py -3.14 -m streamlit run src/dashboard/app.py
 ```
 Upload a TFM image (color or grayscale) → weld map with severity-colored defect markers, a
-Seg-Grad-CAM heatmap + trust score, a per-defect table and cards (size/orientation/severity/
+Seg-Grad-CAM++ heatmap + trust score, a per-defect table and cards (size/orientation/severity/
 confidence), and the weld-health panel. Verified: pipeline runs end-to-end (GS1 → 2 defects,
 health 0.84, PASS, XAI trust 0.95) and the app boots and serves.
 

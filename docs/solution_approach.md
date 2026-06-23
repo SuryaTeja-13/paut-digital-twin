@@ -250,8 +250,9 @@ Each explanation is **matched to the head it explains**:
   (higher=better), and **pointing-game** → combined into a single **trust score** per explanation.
   For segmentation we use *region-based* scoring so a tiny defect isn't swamped by background.
 
-**Result on a 16-image validation sample: mean trust ≈ 0.91** (deletion 0.12, insertion 0.86,
-pointing-game 1.00) — the Grad-CAM explanations are genuinely faithful, not decorative.
+The deployed explainer is **Grad-CAM++**, the most faithful method in our comparison
+(`xai_method_comparison.md`). **Mean trust ≈ 0.97** (deletion 0.05, insertion 0.95,
+pointing-game 1.00) — the explanations are genuinely faithful, not decorative.
 
 ---
 
@@ -279,7 +280,7 @@ chain (S1 → S2 → S3 → S4) and returns one structured dict with everything 
 ### 8.3 Dashboard — `src/dashboard/app.py`  (Streamlit, 4 tabs)
 - **Overview** — colored PASS/REVIEW/FAIL status banner + weld map with severity-colored defect
   markers.
-- **Explainability** — original image, Seg-Grad-CAM heatmap, intrinsic attention map, trust score.
+- **Explainability** — original image, Seg-Grad-CAM++ heatmap, intrinsic attention map, trust score.
 - **Defects** — per-defect table + cards (size / orientation / severity / confidence) +
   download-`defects.json` button.
 - **Details** — a **model-accuracy panel** (read from `data/processed/model_metrics.json`) shown
@@ -343,7 +344,7 @@ curve at `data/processed/ablation/type_clf_ablation.png`.)
 2. Patch → **SCN-Attention U-Net** → **segmentation mask** (detection) + features.
 3. Patch → **scattering classifier** → **defect type** (porosity / slag), applied to the mask.
 4. Mask → **characterization** → per-defect **size / shape / orientation / severity** records.
-5. Patch + mask → **XAI** → **Grad-CAM heatmap + trust score**.
+5. Patch + mask → **XAI** → **Grad-CAM++ heatmap + trust score**.
 6. Defect records → **twin** → **health index + PASS/REVIEW/FAIL**.
 7. Everything → **Streamlit dashboard** (4 tabs).
 

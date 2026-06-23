@@ -24,6 +24,6 @@ Fused 8 porosity+slag pairs (test split) by amplitude max-blend.
 ## Interpretation
 
 - **the segmentation head generalises well to mixed defects — it localises both flaw types in one image despite only ever training on single-type images.**
-- The miss is asymmetric: **porosity** is detected less often (porosity 88% vs slag 100%). This matches its weaker stand-alone score (porosity Dice ~0.45 vs slag ~0.68): when the fainter porosity is max-blended with the stronger slag, the dominant signal suppresses it.
+- The miss is asymmetric: **porosity** is detected less often (porosity 88% vs slag 100%). This matches its weaker stand-alone score (porosity Dice 0.66 vs slag 0.71): when the fainter porosity is max-blended with the stronger slag, the dominant signal suppresses it.
 - Detection is per-pixel, so the head *can* light up both class channels when both signatures are clearly present (see the both-detected cases) — the limit is signal strength of the weaker flaw, not the architecture.
 - **Mitigation:** include a few multi-defect composites in training, or detect each class at its own threshold. Gallery: `data/processed/fusion/fusion_gallery.png`.
