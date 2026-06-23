@@ -14,7 +14,7 @@ paths:
 classes: [porosity, slag]
 
 gradcam:
-  method: grad_cam                       # grad_cam | grad_cam++
+  method: grad_cam++                     # grad_cam | grad_cam++ (++ = most faithful in our study)
   target: seg_true                       # seg_true (use the image's true class) | seg_pred | cls
 faithfulness:
   steps: 20                              # deletion/insertion resolution

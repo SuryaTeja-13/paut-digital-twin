@@ -166,7 +166,9 @@ class Pipeline:
             areas = [int((seg == ci + 1).sum()) for ci in range(len(self.classes))]
             tc = int(np.argmax(areas)) + 1
             dom = result["defect_type"]
-            cam, _ = grad_cam(self.model, patch, head="seg", target_class=tc, device=self.device)
+            # Grad-CAM++ — the most faithful method in the XAI comparison study.
+            cam, _ = grad_cam(self.model, patch, head="seg", target_class=tc,
+                              plus_plus=True, device=self.device)
             d_auc, i_auc = deletion_insertion(self.model, patch, cam, head="seg",
                                               target_class=tc, steps=15, device=self.device)
             pg = pointing_game(cam, (seg == tc).astype(int))

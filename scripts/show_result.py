@@ -66,7 +66,7 @@ def main(argv=None):
             x = res["xai"]
             ax.imshow(patch, cmap="gray", vmin=0, vmax=1)
             ax.imshow(x["cam"], cmap="jet", alpha=0.5)
-            ax.set_title(f"Grad-CAM (trust {x['trust_score']:.2f})")
+            ax.set_title(f"Grad-CAM++ (trust {x['trust_score']:.2f})")
         elif kind == "attention":
             att = res["xai"].get("attention", {})
             if att:

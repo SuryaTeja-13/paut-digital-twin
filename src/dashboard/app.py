@@ -121,7 +121,7 @@ def _feed_full_detail(res, unit="px"):
         if "xai" in res:
             x = res["xai"]
             c1, c2 = st.columns(2)
-            c1.pyplot(heat_fig(res["patch"], x["cam"], f"Seg-Grad-CAM ({x['target_type']})"))
+            c1.pyplot(heat_fig(res["patch"], x["cam"], f"Seg-Grad-CAM++ ({x['target_type']})"))
             c1.success(f"**Trust score {x['trust_score']:.2f}** — deletion {x['deletion_auc']:.2f} "
                        f"(↓ better) · insertion {x['insertion_auc']:.2f} (↑ better) · "
                        f"peak-on-defect {x['pointing_hit']}")
@@ -327,7 +327,7 @@ with tab_xai:
     if run_xai and "xai" in res:
         x = res["xai"]
         c1, c2 = st.columns(2)
-        c1.pyplot(heat_fig(res["patch"], x["cam"], f"Seg-Grad-CAM ({x['target_type']})"))
+        c1.pyplot(heat_fig(res["patch"], x["cam"], f"Seg-Grad-CAM++ ({x['target_type']})"))
         c1.success(f"**Trust score {x['trust_score']:.2f}** — deletion {x['deletion_auc']:.2f} "
                    f"(↓ better) · insertion {x['insertion_auc']:.2f} (↑ better) · "
                    f"peak-on-defect {x['pointing_hit']}")
@@ -336,7 +336,7 @@ with tab_xai:
             key = "gate_up1" if "gate_up1" in att else list(att)[0]
             c2.pyplot(heat_fig(res["patch"], att[key], f"Model's intrinsic attention ({key})"))
             c2.caption("The model's own attention gate — free, faithful-by-construction explanation.")
-        st.caption("Grad-CAM = gradient-based saliency on the decoder; trust = deletion/insertion + "
+        st.caption("Grad-CAM++ = gradient-based saliency on the decoder; trust = deletion/insertion + "
                    "pointing-game (architecture.md Part 6).")
     else:
         st.info("Enable 'Run explainability' in the sidebar to see Grad-CAM + attention.")
