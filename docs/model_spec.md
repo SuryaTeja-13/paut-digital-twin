@@ -53,7 +53,7 @@
 
 **Total parameters:** 8,798,151 trainable. The Wavelet-Scattering filters are **fixed buffers, not learnable parameters** (Kymatio stores them as non-trainable buffers), so they contribute **0** to the parameter count — exactly the point of the SCN prior. Only the small 1×1 `fuse*` projection convs that adapt the scattering tensor to each U-Net scale are learned.
 
-## Hand-verification (math == code, sir's point 9)
+## Hand-verification (math == code)
 
 A few stages checked by hand against the table above:
 

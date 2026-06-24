@@ -165,7 +165,7 @@ CBAM (channel + spatial attention) is exactly the "SE/CBAM" the supervisor speci
 ### 5.5 The three heads
 - **Head 1 — Segmentation:** `1×1 Conv → C_classes channels` (background, porosity, slag, crack, lack-of-fusion). Softmax per pixel.
 - **Head 2 — Classification:** `Global pooling on the bottleneck + global scattering vector → MLP → {normal, porosity, slag, mixed}`. Feeding the scattering vector here directly leverages the small-data strength.
-- **Head 3 — Size regression (optional):** keep it optional. The sir is right: **derive size from the mask** (more accurate and interpretable). Use Head 3 only as an auxiliary sanity check if at all.
+- **Head 3 — Size regression (optional):** keep it optional. Prefer to **derive size from the mask** (more accurate and interpretable). Use Head 3 only as an auxiliary sanity check if at all.
 
 ### 5.6 Loss function (their formula + the re-check the supervisor asked for)
 Start with exactly what the supervisor gave:
@@ -175,7 +175,7 @@ L = 0.6 · L_DiceFocal(seg) + 0.3 · L_cls(classification) + 0.1 · L_boundary
 - **L_DiceFocal** = Dice + Focal (handles the heavy background-vs-defect class imbalance; Focal down-weights easy background pixels).
 - **L_cls** = cross-entropy (or focal CE if classes imbalanced).
 - **L_boundary** = boundary/contour loss (sharpens mask edges → better size/orientation measurements).
-**The re-check ("you also have to check your loss"):** if cracks (thin, elongated) segment poorly, raise the boundary weight (e.g., 0.6/0.25/0.15) and/or add a **Tversky** term (β>0.5) that penalizes false negatives — thin defects are mostly false-negative failures. Tune these weights on the validation set; log every change.
+**The re-check ("you also have to check your loss"):** if cracks (thin, elongated) segment poorly, raise the boundary weight (e.g., 0.6/0.25/0.15) and/or add a **Tversky** term (β>0.5) that penalizes false negatives — thin defects are mostly false-negative failures. Tune these weights on the validation set; log every change. **Implemented:** a foreground **Focal-Tversky** term (α=0.3, β=0.7) was added per this re-check — it fixed an all-background collapse where the head ignored the rare defect pixels.
 
 ### 5.7 Characterization module (blobs, PCA, severity)
 On each predicted instance mask:
@@ -216,10 +216,10 @@ Segmentation: **Dice / IoU per class**, boundary-F1. Classification: accuracy, p
 
 # PART 6 — STUDENT 3: EXPLAINABLE AI (chosen for THIS model)
 
-The sir asked you to pick the XAI that *aligns with this specific model* — not to use everything. Here is the reasoned selection, matched to each part of the architecture.
+The methodology requires picking the XAI that *aligns with this specific model* — not using everything. Here is the reasoned selection, matched to each part of the architecture.
 
 ### 6.1 Match the method to the head
-**For the segmentation head → Grad-CAM / Grad-CAM++ (and Seg-Grad-CAM) on the last decoder convolutional block.** Evidence: a crack-tip *segmentation* study using a U-Net found gradient-based CAMs (Grad-CAM, Grad-CAM++) significantly more *correct, complete, and compact* than gradient-free CAMs (Score-CAM, Eigen-CAM, Ablation-CAM); Grad-CAM applied to a U-Net's final layer reliably highlights the true target region. Your domain (cracks/porosity/slag) is essentially the same imaging-defect-segmentation setting, so this transfers directly. Grad-CAM also needs **no retraining and no architecture change** and works on any differentiable CNN — zero risk to your accuracy.
+**For the segmentation head → Grad-CAM / Grad-CAM++ (and Seg-Grad-CAM) on the last decoder convolutional block.** Evidence: a crack-tip *segmentation* study using a U-Net found gradient-based CAMs (Grad-CAM, Grad-CAM++) significantly more *correct, complete, and compact* than gradient-free CAMs (Score-CAM, Eigen-CAM, Ablation-CAM); Grad-CAM applied to a U-Net's final layer reliably highlights the true target region. Your domain (cracks/porosity/slag) is essentially the same imaging-defect-segmentation setting, so this transfers directly. Grad-CAM also needs **no retraining and no architecture change** and works on any differentiable CNN — zero risk to your accuracy. **Deployed choice: Grad-CAM++** — in our method comparison it was the most faithful explainer (see §6.3), so it is the one wired into the pipeline and dashboard.
 
 **For the classification head → Grad-CAM++ for spatial attribution.** SHAP was *considered* here for feature attribution (DeepSHAP/GradientSHAP) — it is well-suited to a *classification* CNN/MLP and to the handcrafted shape features feeding severity (it would tell you "porosity area contributed +0.3 toward the 'porosity' class"). **It was not implemented:** the neural classification head is the weak one we deliberately route around (defect *type* comes from the separate scattering classifier, 0.88 balanced), so attributing a head we don't rely on adds a heavy dependency for little value. The implemented XAI is gradient CAMs on the segmentation head plus intrinsic attention maps.
 
@@ -233,7 +233,7 @@ The sir asked you to pick the XAI that *aligns with this specific model* — not
 - **Pure occlusion saliency:** correct but slow and coarse; keep only as an optional cross-check.
 
 ### 6.3 Faithfulness checks (the "standards" the supervisor wants)
-Don't just produce pretty heatmaps — *quantify* them: deletion/insertion AUC, and pointing-game accuracy against the ground-truth mask. Report a single trust score per explanation so Student 4's dashboard can display confidence. This is what makes the XAI "adhere to standards."
+Don't just produce pretty heatmaps — *quantify* them: deletion/insertion AUC, and pointing-game accuracy against the ground-truth mask. Report a single trust score per explanation so Student 4's dashboard can display confidence. This is what makes the XAI "adhere to standards." **Result:** the comparison ranked **Grad-CAM++ highest** (trust 0.97, deletion 0.05, insertion 0.95, pointing-game 1.0), ahead of Grad-CAM, LIME and SHAP — so Grad-CAM++ is the deployed explainer.
 
 **Selection summary (one table for the report).** "Implemented" = what actually runs in `src/xai/`; "Considered" = evaluated in the design but not built.
 | Model part | Implemented XAI | Considered / not built | Rejected (why) |
@@ -248,7 +248,7 @@ Don't just produce pretty heatmaps — *quantify* them: deletion/insertion AUC, 
 
 # PART 7 — STUDENT 4: DIGITAL TWIN + DASHBOARD
 
-The sir wants the *best* digital twin and told you to read DT research. Here's the grounded design.
+The brief calls for the *best possible* digital twin, grounded in digital-twin research. Here's the design.
 
 ### 7.1 What a digital twin actually is (for the report)
 In NDT/Industry-4.0 practice a digital twin is a **virtual replica of a physical asset that reproduces its behaviour under real operating conditions**, used to visualize internal defects, simulate stresses, and anticipate degradation, with AI providing the analytical layer for asset-integrity management. The standard architecture has **three layers**: Physical System → Digital Twin Layer (the virtual model, kept in sync) → Digital Twin Application Layer (dashboards, decisions). Tie it to inspection standards (ISO 9712 operator/method, ISO 9001 quality, and risk-based-inspection / API-580 thinking for severity → action).

@@ -1,6 +1,6 @@
 # Training improvements (augmentation) — wired in, retrain on GPU to activate
 
-These changes target the weak points sir flagged (fusion, noise robustness) by enriching the
+These changes target the weak points flagged in review (fusion, noise robustness) by enriching the
 **training data**, not the model. The SCN-Attention U-Net architecture and the fixed scattering
 filters are **unchanged** — so there is no risk of the collapse a redesign would cause. The
 improvements only take effect after a **retrain on GPU** (Colab/Kaggle); the current production

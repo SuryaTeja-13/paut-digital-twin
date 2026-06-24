@@ -71,6 +71,6 @@ docs and implemented in the code. BibTeX keys (for the report) are in `docs/refe
 ---
 
 *Note:* items 3–19 are the standard primary sources for each technique implemented in the codebase.
-If sir expects PAUT/TFM domain references in the literature review beyond these, list the specific
-inspection standards/papers used in the lab and they will be added here verbatim — none are
+If the literature review needs PAUT/TFM domain references beyond these, the specific
+inspection standards/papers used in the lab can be added here verbatim — none are
 fabricated.
