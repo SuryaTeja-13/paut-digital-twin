@@ -10,6 +10,8 @@ Fused 8 porosity+slag pairs (test split) by amplitude max-blend.
 - Porosity detected in 88%, slag detected in 100%.
 - Mean per-class Dice on composites: porosity 0.590, slag 0.609.
 
+![Multi-defect fusion — per-pair detection and Dice results](docs/figures/fusion_summary.png)
+
 | Pair | porosity | slag | both | Dice por | Dice slag |
 |------|:-------:|:----:|:----:|--------:|---------:|
 | porosity__G110_1+slag__GS105 | Y | Y | Y | 0.63 | 0.46 |

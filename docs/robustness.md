@@ -16,6 +16,8 @@ Gaussian noise added to real test images at rising σ; segmentation Dice and typ
 
 Curve: `data/processed/robustness/noise_curve.png`.
 
+![Noise robustness — Dice and type accuracy vs additive Gaussian noise σ](docs/figures/robustness_noise_curve.png)
+
 ## B. Synthetic defects
 
 Procedurally generated porosity (round blobs) and slag (streak) images (16 total). The model **detected a defect in 100%** of them; type accuracy 50%. Gallery: `data/processed/robustness/synthetic_gallery.png`.

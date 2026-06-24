@@ -54,6 +54,8 @@ Streamlit dashboard. An independent **scattering-feature type classifier** sits 
 to decide defect *type* (the neural head was too weak), and a **data-ablation harness** proves the
 value of the scattering prior.
 
+![Pipeline overview — four-stage one-click processing chain](docs/figures/pipeline_overview.png)
+
 ---
 
 ## 3. The data layer (Milestone 1 + 2)

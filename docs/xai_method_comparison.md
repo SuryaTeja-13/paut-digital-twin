@@ -22,6 +22,8 @@
 
 **Winner:** Grad-CAM++ (trust 0.967). Chart: `data/processed/xai/method_comparison.png`.
 
+![XAI method comparison — trust, deletion, insertion AUC by method](docs/figures/xai_comparison.png)
+
 ## Interpretation
 
 - **The gradient CAMs win because their peak lands on the defect every time** (pointing-game

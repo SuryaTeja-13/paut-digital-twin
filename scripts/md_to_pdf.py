@@ -137,6 +137,9 @@ def parse(md: str):
             yield ("h3", ln[4:].strip()); i += 1; continue
         if ln.strip() == "---":
             yield ("hr", None); i += 1; continue
+        mimg = re.match(r"^\s*!\[(.*?)\]\((.+?)\)\s*$", ln)
+        if mimg:
+            yield ("image", mimg.group(2), mimg.group(1)); i += 1; continue
         if re.match(r"^\s*[-*]\s+", ln):
             yield ("bullet", re.sub(r"^\s*[-*]\s+", "", ln)); i += 1; continue
         m = re.match(r"^\s*(\d+)\.\s+", ln)
@@ -222,6 +225,15 @@ def build(md_path, out_path, title, subtitle, footer_text, add_ablation=False):
             flow += [Spacer(1, 2), code_flowable(block[1], st), Spacer(1, 6)]
         elif kind == "table":
             flow += [Spacer(1, 2), table_flowable(block[1], st), Spacer(1, 6)]
+        elif kind == "image":
+            img_path = block[1] if os.path.isabs(block[1]) else os.path.join(ROOT, block[1])
+            if os.path.exists(img_path):
+                from PIL import Image as _PIL
+                _pil = _PIL.open(img_path)
+                _w, _h = _pil.size
+                iw = 170 * mm
+                ih = iw * _h / _w
+                flow += [Spacer(1, 4), Image(img_path, width=iw, height=ih), Spacer(1, 6)]
 
     if add_ablation and os.path.exists(ABLATION_PNG):
         flow += [
