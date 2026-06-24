@@ -108,14 +108,14 @@ def main():
                             round(m["best_val_dice_fg"], 4), round(m["best_val_cls_acc"], 4)])
     print(f"\nresults -> {csv_path}")
 
-    # plot dice_fg vs data fraction (plain grayscale — no colour)
+    # plot dice_fg vs data fraction (coloured series, black text/axes)
     plt.rcParams.update({"figure.facecolor": "white", "axes.facecolor": "white",
                          "axes.edgecolor": "black", "text.color": "black",
                          "axes.labelcolor": "black", "xtick.color": "black",
                          "ytick.color": "black"})
     fig, ax = plt.subplots(1, 2, figsize=(12, 5))
-    for scat, label, style, col in [(True, "SCN-Attention U-Net", "o-", "black"),
-                                    (False, "plain U-Net (baseline)", "s--", "0.5")]:
+    for scat, label, style, col in [(True, "SCN-Attention U-Net", "o-", "#1f4e79"),
+                                    (False, "plain U-Net (baseline)", "s--", "#d62728")]:
         pts = sorted(results[scat], key=lambda m: m["data_fraction"])
         if not pts:
             continue

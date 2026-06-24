@@ -36,10 +36,10 @@ def box(ax, x, y, w, h, fill, edge, title, lines, fs_t=9.5, fs_l=7.6):
         (x, y), w, h, boxstyle="round,pad=0.02,rounding_size=0.05",
         linewidth=1.6, edgecolor=edge, facecolor=fill, zorder=3))
     cx = x + w / 2
-    ax.text(cx, y + h - 0.30, title, ha="center", va="center",
+    ax.text(cx, y + h - 0.32, title, ha="center", va="center",
             fontsize=fs_t, fontweight="bold", color="#111", zorder=4)
     for i, ln in enumerate(lines):
-        ax.text(cx, y + h - 0.62 - i * 0.30, ln, ha="center", va="center",
+        ax.text(cx, y + h - 0.66 - i * 0.345, ln, ha="center", va="center",
                 fontsize=fs_l, color="#222", zorder=4)
     return (x, y, w, h, cx, y + h / 2)
 
@@ -91,7 +91,7 @@ def main():
     # ---- S1: two stacked stages ----
     s1d, s1l = BANDS[0][2], BANDS[0][3]
     a = box(ax, 1.15, yC + 0.15, 3.1, 1.3, s1l, s1d, "Preprocess",
-            ["color->amplitude", "crop . normalize", "split + manifest"])
+            ["color -> amplitude", "crop / normalize / split"])
     b = box(ax, 1.15, yC - 1.55, 3.1, 1.3, s1l, s1d, "Pseudo-labels",
             ["Stage-1 masks", "(weak supervision)"])
     chain += [a, b]
@@ -99,7 +99,7 @@ def main():
     # ---- S2 ----
     s2d, s2l = BANDS[1][2], BANDS[1][3]
     c = box(ax, 4.85, yC + 0.15, 3.75, 1.3, s2l, s2d, "SCN-Attention U-Net",
-            ["scattering prior + Attn U-Net", "seg (3-cls) + type (2-cls)", "8.8M params"])
+            ["scattering + Attn U-Net", "seg + type . 8.8M params"])
     d = box(ax, 4.85, yC - 1.55, 3.75, 1.3, s2l, s2d, "Characterization",
             ["blob analysis . PCA", "size / orientation / severity"])
     chain += [c, d]
