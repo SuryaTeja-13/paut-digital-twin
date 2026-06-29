@@ -1,11 +1,12 @@
 """
 robustness.py — stress-test the model on degraded / synthetic / out-of-distribution
-inputs (sir's point 5).
+inputs.
 
-Sir asked to add noise, make synthetic data, and put text on a plain image to see how
-well the model copes and whether it gets fooled. We run these as a SEPARATE robustness
-evaluation (the honest 0.88 / 0.57 train/test numbers are NOT touched — mixing these
-images into the dataset would corrupt the headline metrics):
+To probe how well the model copes and whether it can be fooled, we add noise, generate
+synthetic data, and render text on a plain image. We run these as a SEPARATE robustness
+evaluation (the headline test metrics (type balanced accuracy 0.88, segmentation mean
+foreground Dice 0.69) are NOT touched — mixing these images into the dataset would
+corrupt the headline metrics):
 
   A. Noise robustness — add Gaussian noise at rising levels to real test images and
      plot how segmentation Dice and type accuracy degrade.

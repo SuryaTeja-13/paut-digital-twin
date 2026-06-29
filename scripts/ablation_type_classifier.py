@@ -1,13 +1,13 @@
 """
-ablation_type_classifier.py — data-ablation of the TYPE classifier (sir's §5.11 curriculum,
-applied to the scattering-feature type classifier we improved to 0.88).
+ablation_type_classifier.py — data-ablation of the TYPE classifier (the §5.11
+curriculum, applied to the scattering-feature type classifier we improved to 0.88).
 
 Trains the SAME in-approach classifier (log-scattering -> scale -> tiny MLP) on
 100 / 50 / 25 / 10 % of the TRAIN split and scores balanced accuracy on the FULL
 test split. Several random subsamples per fraction -> mean ± std (honest, low-noise).
 Scattering features are fixed and extracted once, so the whole sweep runs on CPU in
 minutes. Shows whether the fixed wavelet-scattering prior keeps the type signal
-robust as data shrinks — the small-data point sir's approach is built to make.
+robust as data shrinks — the small-data point this approach is designed to make.
 
 Run:  py -3.14 -m scripts.ablation_type_classifier
 Out:  data/processed/ablation/type_clf_ablation.{csv,png}

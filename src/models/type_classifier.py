@@ -84,7 +84,7 @@ class TypeClassifier:
 
 def train_and_save(manifest, out_path, classes=("porosity", "slag"),
                    J=2, L=8, order=2, shape=(256, 256), noise_sigmas=None):
-    """Fit the small classifier on FIXED scattering features (sir's IWSCN approach).
+    """Fit the small classifier on FIXED scattering features (the IWSCN approach).
 
     Pipeline = log1p (log-scattering, Mallat/Bruna) -> StandardScaler -> MLP(64).
     Selected by 5-fold CV on the train split; the test split is scored once (honest).

@@ -1,12 +1,12 @@
 """
 model_spec.py — exact, re-runnable architecture spec for the SCN-Attention U-Net.
 
-WHY this exists (sir's request, point 2): the report needs *clear data of everything*
+WHY this exists: the report needs clear, complete data on every part of the model
 — every encoder stage's channels and spatial size, the latent (bottleneck) dimension,
 the scattering coefficient breakdown, and the parameter count of each part. We do NOT
 hand-derive these (that risks transcription errors); we instantiate the real model from
 `configs/model.yaml`, run one forward pass with hooks, and report what the code actually
-produces. The same script is the "math == code" check for point 9.
+produces. The same script doubles as our "math == code" verification.
 
 Outputs (all regenerable):
   - prints a layer-by-layer table to the console
@@ -208,7 +208,7 @@ def main():
                  "non-trainable buffers), so they contribute **0** to the parameter count — exactly "
                  "the point of the SCN prior. Only the small 1×1 `fuse*` projection convs that adapt "
                  "the scattering tensor to each U-Net scale are learned.\n")
-    lines.append("## Hand-verification (math == code, sir's point 9)\n")
+    lines.append("## Hand-verification (math == code)\n")
     lines.append("A few stages checked by hand against the table above:\n")
     lines.append(f"- **Scattering coeffs:** 1 + J·L + L²·J(J−1)/2 = 1 + {J}·{L} + {L}²·{J}·{J-1}/2 "
                  f"= {scat['total'] if scat else 0}. ✓")

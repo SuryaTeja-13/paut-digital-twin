@@ -37,7 +37,8 @@ CKPT = "checkpoints/scn_attn_unet_best.pt"
 TOP_CROP = 0.08          # trim top array-fringe artefact
 BOT_CROP = 0.20          # trim bottom backwall echo
 
-# my labels, confirmed by the user (artificial defects on a steel block)
+# Ground-truth labels for the steel-block reference images: drilled holes map to
+# porosity, machined notches map to slag (one faint frame excluded below)
 LABELS = {
     "Figure_3.png": "porosity",
     "Figure_9.png": "porosity",

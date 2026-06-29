@@ -1,11 +1,13 @@
 """
-retrain_type_robust.py — make the type classifier noise-robust and INCUBATE it (sir's ask).
+retrain_type_robust.py — make the type classifier noise-robust and fold the improvement
+back into the deployed model.
 
-The robustness test (#5) showed the type classifier collapses to chance under additive noise
+Our robustness probe showed the type classifier collapses to chance under additive noise
 because it was trained only on clean scattering features. Here we retrain it WITH noise
 augmentation (clean + several noisy copies of each train image) so it learns the noisy feature
 distribution. The model architecture and the fixed scattering filters are unchanged — only the
-small classifier's training data is enriched (still sir's IWSCN "scattering + small classifier").
+small classifier's training data is enriched, so it stays within the same scattering-plus-small-
+classifier design.
 
 Guard: we ADOPT the new model into production (`checkpoints/type_classifier.pkl`) only if its
 CLEAN test balanced accuracy does not drop (stays within 0.01 of the current ~0.88) AND its
@@ -83,7 +85,7 @@ def main():
 
     if clean_ok and noisy_better:
         shutil.copy(NEW, PROD)
-        print(f"\nADOPTED -> copied to production {PROD} (incubated into the model).")
+        print(f"\nADOPTED -> copied to production {PROD} (folded into the deployed model).")
         adopted = True
     else:
         print(f"\nNOT adopted — kept current {PROD}. (clean must hold AND noisy must improve.)")

@@ -363,6 +363,9 @@ tally. Build the 15-frame demo set (12 defect + 3 no-defect) first:
 py -3.14 -m scripts.make_demo_feed     # -> data/processed/demo_feed/
 ```
 
+**Single-scan pop-up** — [scripts/show_result.py](scripts/show_result.py) opens a pop-up window for
+one scan showing the model mask + Grad-CAM++ overlay + health verdict, for a quick live demo.
+
 ### Tests
 ```bash
 py -3.14 -m tests.test_twin

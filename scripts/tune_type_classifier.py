@@ -1,6 +1,6 @@
 """
-tune_type_classifier.py — search for a higher-accuracy type classifier WITHOUT leaving
-sir's approach (fixed Wavelet-Scattering features + a small classifier, à la IWSCN).
+tune_type_classifier.py — search for a higher-accuracy type classifier while staying
+within our chosen approach (fixed Wavelet-Scattering features + a small classifier, à la IWSCN).
 
 Honest protocol:
   * candidates differ only in (a) scattering renormalization and (b) the small classifier,
@@ -10,7 +10,7 @@ Honest protocol:
 In-approach knobs only:
   - log1p of scattering coeffs (standard log-scattering renormalization; Mallat/Bruna)
   - LogisticRegression C grid / Linear SVM / RBF SVM / tiny MLP  (= "the small classifier")
-  - J=2 vs J=3 scattering depth (sir's sheet: "try J=3 if features too coarse")
+  - J=2 vs J=3 scattering depth (try J=3 if the features turn out too coarse)
 
 Run:  py -3.14 -m scripts.tune_type_classifier
 """

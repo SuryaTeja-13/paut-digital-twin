@@ -74,9 +74,9 @@ class Pipeline:
     def analyze_batch(self, image_paths, batch_size: int = 8, run_xai: bool = False,
                       pixel_to_mm: float = None) -> list:
         """
-        Mini-batch inference over many images (sir's points 6+7): the model forward and
-        the scattering type-features are computed in batches of `batch_size`, then each
-        image's characterization + twin is assembled. XAI is off by default (per-image,
+        Mini-batch inference over many images: the model forward and the scattering
+        type-features are computed in batches of `batch_size`, then each image's
+        characterization + twin is assembled. XAI is off by default (per-image,
         slower) so a live feed stays responsive.
         """
         from .models.type_classifier import scatter_features

@@ -1,5 +1,5 @@
 """
-batch_infer.py — run the pipeline over many images with mini-batch processing (sir 6 + 7).
+batch_infer.py — run the pipeline over many images with mini-batch processing.
 
 A clean inference entry point: point it at a folder (or glob) of TFM images and it runs
 them through the pipeline in mini-batches (one model forward per batch, scattering features

@@ -19,7 +19,7 @@
 
 > **Project.** Build an Explainable-AI Digital Twin for weld inspection from Phased Array Ultrasonic Testing (PAUT) data, following the problem statement in *"Explainable AI-Based Digital Twin for PAUT Weld Inspection"*, plus the specific methodology defined for this project. The system must (1) automatically detect and classify weld defects from PAUT TFM images, (2) characterize each defect (size, shape, orientation, location, severity), (3) explain its predictions with Explainable AI chosen specifically for this model, and (4) present everything in a Digital Twin of weld health with an interactive dashboard.
 >
-> **Team & roles (8–10 week internship, 3–4 students).** Student 1: PAUT data acquisition, preprocessing, signal/image analysis, defect annotation, dataset preparation — *already done; porosity and slag images collected.* Student 2: AI/ML model for defect detection + classification + characterization — *must follow the supervisor's modified approach below, not the basic CNN/YOLO of the PDF.* Student 3: Explainable AI — *must select the single best XAI method(s) for this particular model* from at least {Grad-CAM, Grad-CAM++/CAMs, SHAP, LIME, Guided Backpropagation, Occlusion saliency, SmoothGrad, Integrated Gradients}, justified against the model's architecture and accuracy, adhering to standards. Student 4: Digital Twin dashboard, weld-health visualization, integration — *must be a research-grade digital twin*, informed by reading digital-twin research papers (what it is, how it is used in science and industry).
+> **Team & roles (8–10 week internship, 3–4 students).** Student 1: PAUT data acquisition, preprocessing, signal/image analysis, defect annotation, dataset preparation — *already done; porosity and slag images collected.* Student 2: AI/ML model for defect detection + classification + characterization — *follows the modified approach defined below, not the basic CNN/YOLO of the PDF.* Student 3: Explainable AI — *must select the single best XAI method(s) for this particular model* from at least {Grad-CAM, Grad-CAM++/CAMs, SHAP, LIME, Guided Backpropagation, Occlusion saliency, SmoothGrad, Integrated Gradients}, justified against the model's architecture and accuracy, adhering to standards. Student 4: Digital Twin dashboard, weld-health visualization, integration — *must be a research-grade digital twin*, informed by reading digital-twin research papers (what it is, how it is used in science and industry).
 >
 > **Defect classes.** cracks, porosity, slag inclusion, lack of fusion (Student 1 currently has porosity + slag; design must extend to the rest).
 >
@@ -43,13 +43,13 @@
 
 ---
 
-# PART 2 — THE REASON (why the supervisor insists on the scattering + attention approach)
+# PART 2 — THE REASON (why we chose the scattering + attention approach)
 
-The supervisor specified this particular approach for a deliberate reason. Here it is — a single, coherent reason with several faces:
+We chose this particular approach for a deliberate reason. Here it is — a single, coherent reason with several faces:
 
-**Your real constraint is limited, expensive, noisy data — and the wavelet scattering transform is the single best-known prior for exactly that situation.**
+**Our core constraint is limited, expensive, noisy data — and the wavelet scattering transform is the single best-known prior for exactly that situation.**
 
-1. **Small-sample superiority without training.** A wavelet scattering network uses *fixed* wavelet filters; the scattering stage needs no backpropagation, so it cannot overfit your tiny PAUT dataset. The reference paper and the scattering literature (Bruna & Mallat; Andén & Mallat) show scattering features yield lower error rates than learned CNN features when data is scarce. PAUT weld defects are rare and costly to label — this is precisely the regime where scattering wins.
+1. **Small-sample superiority without training.** A wavelet scattering network uses *fixed* wavelet filters; the scattering stage needs no backpropagation, so it cannot overfit our limited PAUT dataset. The reference paper and the scattering literature (Bruna & Mallat; Andén & Mallat) show scattering features yield lower error rates than learned CNN features when data is scarce. PAUT weld defects are rare and costly to label — this is precisely the regime where scattering wins.
 
 2. **Built-in invariances that match PAUT physics.** Scattering features are translation-invariant and *stable to deformation* (Lipschitz-continuous to small warps). Weld defects appear at different positions, depths, scales and orientations across TFM images; scattering gives stable features under all of these, so the model generalizes from few examples.
 
@@ -57,9 +57,9 @@ The supervisor specified this particular approach for a deliberate reason. Here 
 
 4. **Sparsity → fewer effective parameters → less overfitting + faster.** Scattering coefficients are sparse (mostly zero outside defect regions), which both reduces compute and gives an interpretable, low-dimensional feature field — helpful for the XAI step too.
 
-5. **Attention U-Net supplies what scattering lacks.** Scattering gives stable *texture/edge* features but not pixel-precise localization or long-range semantic context. The Attention U-Net adds exactly that: precise masks and attention-gated context. Fusing the two means stable small-data features **and** the sharp masks you need to *characterize* defects (size, orientation, severity) and feed the **digital twin**. A plain CNN/YOLO (the PDF's default) would need far more labeled data and would not give you clean masks for characterization.
+5. **Attention U-Net supplies what scattering lacks.** Scattering gives stable *texture/edge* features but not pixel-precise localization or long-range semantic context. The Attention U-Net adds exactly that: precise masks and attention-gated context. Fusing the two means stable small-data features **and** the sharp masks needed to *characterize* defects (size, orientation, severity) and feed the **digital twin**. A plain CNN/YOLO (the PDF's default) would need far more labeled data and would not give clean masks for characterization.
 
-**One-line version for the report:** *We adopt an SCN-assisted Attention U-Net because the wavelet scattering prior gives translation-/deformation-invariant, noise-robust features that generalize from very few PAUT samples, while the attention U-Net contributes the precise segmentation required for quantitative defect characterization and digital-twin visualization — solving the small-data problem that defeats conventional CNN/YOLO pipelines.*
+**In summary:** *We adopt an SCN-assisted Attention U-Net because the wavelet scattering prior gives translation-/deformation-invariant, noise-robust features that generalize from very few PAUT samples, while the attention U-Net contributes the precise segmentation required for quantitative defect characterization and digital-twin visualization — solving the small-data problem that defeats conventional CNN/YOLO pipelines.*
 
 ---
 
@@ -104,17 +104,17 @@ Four cooperating layers, one per student, with clean interfaces between them:
 
 # PART 4 — STUDENT 1: DATA, PREPROCESSING, ANNOTATION
 
-Student 1's collection is done, but the *preprocessing decisions here make or break the color/grayscale requirement*, so treat this as active work.
+Student 1's collection is done, but the *preprocessing decisions here make or break the color/grayscale requirement*, so we treat these preprocessing decisions as active work.
 
 ### 4.1 The color-vs-grayscale decision (most important single choice)
 A TFM image is fundamentally a **scalar amplitude field**. "Colour" TFM is just a colormap (e.g., jet/turbo/parula) painted onto that scalar; "grayscale" TFM is the scalar shown directly. So colour carries **no extra information** — it is the same physics. The reference paper confirms the analog: across R/G/B channels their accuracy was identical, so they used a single channel.
 
 **Therefore: convert every image to one canonical amplitude channel before anything else.**
 - Grayscale input → use directly (normalize).
-- Colour input → invert the colormap back to a scalar. Practically: if you know the colormap, apply its inverse LUT; if you don't, convert to luminance / or fit nearest-colormap mapping. A robust default is to estimate amplitude by matching each pixel's RGB to the known colormap's lookup table (`matplotlib` colormaps expose this).
+- Colour input → invert the colormap back to a scalar. Practically: if the colormap is known, apply its inverse LUT; if not, convert to luminance / or fit nearest-colormap mapping. A robust default is to estimate amplitude by matching each pixel's RGB to the known colormap's lookup table (`matplotlib` colormaps expose this).
 - Then per-image normalize (min–max or z-score on the amplitude) so brightness/gain differences vanish.
 
-This *one* step satisfies "must work on colour and greyscale alike": the SCN never sees colour, only physics-true amplitude. Document it as a design contribution.
+This *one* step satisfies "must work on colour and greyscale alike": the SCN never sees colour, only physics-true amplitude. We treat this as a core design contribution.
 
 ### 4.2 Preprocessing pipeline
 1. Load → to canonical amplitude (above).
@@ -124,7 +124,7 @@ This *one* step satisfies "must work on colour and greyscale alike": the SCN nev
 5. Save as `float32` `.npy` (preferred) or 16-bit PNG, plus the manifest.
 
 ### 4.3 Annotation & the Stage-1 pseudo-labels
-You likely have few hand labels. Follow the supervisor's Stage-1 plan: generate **pseudo-masks** with the current contour method (threshold on amplitude → morphology → contours → fill → box). These are approximate but enough to bootstrap Stage-2 training. Reserve a small, *carefully hand-labeled* validation set (even 30–50 images) — never train on it; it is your honest accuracy meter.
+We likely have few hand labels. Our Stage-1 plan generates **pseudo-masks** with the current contour method (threshold on amplitude → morphology → contours → fill → box). These are approximate but enough to bootstrap Stage-2 training. Reserve a small, *carefully hand-labeled* validation set (even 30–50 images) — never train on it; it is our honest accuracy meter.
 
 ### 4.4 Dataset manifest (example columns)
 `image_id, path, source_type(color/gray), colormap, pixel_to_mm, weld_id, defect_present, label_type(true/pseudo), split(train/val/test)`
@@ -133,22 +133,22 @@ You likely have few hand labels. Follow the supervisor's Stage-1 plan: generate 
 
 # PART 5 — STUDENT 2: THE SCN-ATTENTION U-NET (the core model)
 
-This is the heart. Build it in PyTorch.
+This is the core of the system, implemented in PyTorch.
 
 ### 5.1 The scattering branch (SCN)
-Use **Kymatio** (`Scattering2D`) — a maintained wavelet-scattering library, so you don't hand-code wavelets.
-- Parameters from the supervisor's sheet: `J = 2` (start) or `3`, `L = 8` orientations (or 6), `order = 2`.
-- For a 256×256 input with `J=2, L=8, order=2`, scattering returns ~81 channels at 64×64 spatial resolution (the field shrinks by 2^J). With `J=3` you get more channels at 32×32.
+Use **Kymatio** (`Scattering2D`) — a maintained wavelet-scattering library, so there is no need to hand-code wavelets.
+- Our chosen parameters: `J = 2` (start) or `3`, `L = 8` orientations (or 6), `order = 2`.
+- For a 256×256 input with `J=2, L=8, order=2`, scattering returns ~81 channels at 64×64 spatial resolution (the field shrinks by 2^J). With `J=3` it returns more channels at 32×32.
 - **No gradients flow into the scattering filters** — they're fixed. This is the small-data advantage; keep it that way.
 
-**Producing S1–S4 to match encoder scales (faithful to the supervisor's table/image 3):**
+**Producing S1–S4 to match encoder scales (per the multi-scale fusion table in §1):**
 Scattering gives one fixed-resolution tensor. To get a feature at each U-Net level, for level *i* do:
 `S → 1×1 Conv(to Ci channels) → bilinear-resize to (Hi×Wi)`.
 That literally implements *"SCN coefficients → 1×1 Conv → resize to encoder scale."* The global scattering vector (spatial average) feeds the bottleneck and is also a clean input to the classification head.
 
 ### 5.2 Encoder (Attention U-Net branch)
 `ConvBlock(1→32) → ConvBlock(32→64) → ConvBlock(64→128) → ConvBlock(128→256) → Bottleneck(256→512)`, max-pool between levels.
-- ConvBlock = (Conv3×3 → norm → ReLU) ×2. Note the reference paper found *omitting* BatchNorm helped their shallow scattering-CNN; for a U-Net keep norm but consider **GroupNorm** (more stable than BatchNorm with the tiny batch sizes you'll use on limited data).
+- ConvBlock = (Conv3×3 → norm → ReLU) ×2. Note the reference paper found *omitting* BatchNorm helped their shallow scattering-CNN; for a U-Net keep norm but consider **GroupNorm** (more stable than BatchNorm with the tiny batch sizes used on limited data).
 
 ### 5.3 Fusion block (per scale) — the SCN ⊕ U-Net join
 For each level *i*:
@@ -157,7 +157,7 @@ fuse_i = Concat(E_i, resize(1x1Conv(S)))      # channels: Ci + Ci
 fuse_i = 1x1 Conv(2Ci → Ci)                    # mix
 fuse_i = CBAM(fuse_i)                          # channel attention → spatial attention
 ```
-CBAM (channel + spatial attention) is exactly the "SE/CBAM" the supervisor specified. CBAM is the better pick here because its **spatial** attention map is also a *free, intrinsic explainability signal* for Student 3.
+CBAM (channel + spatial attention) is exactly the "SE/CBAM" called for in the required architecture. CBAM is the better pick here because its **spatial** attention map is also a *free, intrinsic explainability signal* for Student 3.
 
 ### 5.4 Decoder with Attention Gates
 `UpConv(512→256) → UpConv(256→128) → UpConv(128→64) → UpConv(64→32)`, where each skip connection passes through an **Attention Gate** (the gate uses the decoder's gating signal to weight the fused encoder features). Attention gates suppress irrelevant background — important because welds have busy backgrounds and few real defect pixels.
@@ -167,30 +167,30 @@ CBAM (channel + spatial attention) is exactly the "SE/CBAM" the supervisor speci
 - **Head 2 — Classification:** `Global pooling on the bottleneck + global scattering vector → MLP → {normal, porosity, slag, mixed}`. Feeding the scattering vector here directly leverages the small-data strength.
 - **Head 3 — Size regression (optional):** keep it optional. Prefer to **derive size from the mask** (more accurate and interpretable). Use Head 3 only as an auxiliary sanity check if at all.
 
-### 5.6 Loss function (their formula + the re-check the supervisor asked for)
-Start with exactly what the supervisor gave:
+### 5.6 Loss function (base formula + the re-check we build in)
+Start with the base formula defined for the model:
 ```
 L = 0.6 · L_DiceFocal(seg) + 0.3 · L_cls(classification) + 0.1 · L_boundary
 ```
 - **L_DiceFocal** = Dice + Focal (handles the heavy background-vs-defect class imbalance; Focal down-weights easy background pixels).
 - **L_cls** = cross-entropy (or focal CE if classes imbalanced).
 - **L_boundary** = boundary/contour loss (sharpens mask edges → better size/orientation measurements).
-**The re-check ("you also have to check your loss"):** if cracks (thin, elongated) segment poorly, raise the boundary weight (e.g., 0.6/0.25/0.15) and/or add a **Tversky** term (β>0.5) that penalizes false negatives — thin defects are mostly false-negative failures. Tune these weights on the validation set; log every change. **Implemented:** a foreground **Focal-Tversky** term (α=0.3, β=0.7) was added per this re-check — it fixed an all-background collapse where the head ignored the rare defect pixels.
+**The re-check (we always re-validate the loss against results):** if cracks (thin, elongated) segment poorly, raise the boundary weight (e.g., 0.6/0.25/0.15) and/or add a **Tversky** term (β>0.5) that penalizes false negatives — thin defects are mostly false-negative failures. Tune these weights on the validation set; log every change. **Implemented:** a foreground **Focal-Tversky** term (α=0.3, β=0.7) was added per this re-check — it fixed an all-background collapse where the head ignored the rare defect pixels.
 
 ### 5.7 Characterization module (blobs, PCA, severity)
 On each predicted instance mask:
 - **Blob analysis** (`skimage.measure.regionprops` / `cv2` blob/contour) → area_px, major_axis, minor_axis, orientation, centroid, eccentricity, equivalent diameter, solidity.
 - Convert with `pixel_to_mm`: `length_mm = major_axis·s`, `width_mm = minor_axis·s`, `area_mm2 = area_px·s²`, `equiv_diameter_mm`, `aspect_ratio = major/minor`.
-- **Orientation** = PCA angle of the mask points (regionprops gives this directly; PCA on the (x,y) pixel coordinates is the robust version the supervisor wants).
+- **Orientation** = PCA angle of the mask points (regionprops gives this directly; PCA on the (x,y) pixel coordinates is the robust version we adopt).
 - **Severity** = `f(type, size, orientation, location)`. A defensible scaffold:
-  `severity = w_type[type] · norm(size) · orientation_factor · location_factor`, mapped to {minor, moderate, critical}. **Do not invent acceptance thresholds** — calibrate the cut-offs to a real weld-acceptance standard (e.g., ISO 5817 / ASME BPVC) with the supervisor/domain expert. Note this clearly in the report.
+  `severity = w_type[type] · norm(size) · orientation_factor · location_factor`, mapped to {minor, moderate, critical}. **Do not invent acceptance thresholds** — calibrate the cut-offs to a real weld-acceptance standard (e.g., ISO 5817 / ASME BPVC) in consultation with a domain expert. Note this clearly in the report.
 
 ### 5.8 Multi-defect handling
 Run **connected-components** on the per-class mask for the simple case; use **watershed** when defects touch; graduate to a **Mask-R-CNN-style instance head** only if needed. Each instance → its own characterization record. This is what lets one TFM image report several defects.
 
 ### 5.9 Physics-aware augmentation (not just rotate/flip)
-Implement all seven the supervisor listed, as an `albumentations`-style pipeline plus custom ops:
-amplitude variation (gain scaling), speckle/noise injection (multiplicative speckle), defect translation+rotation, simulated attenuation (depth-dependent intensity falloff), elastic deformation, **synthetic defect insertion** (paste a real defect blob into a clean weld background with feathered edges), and **mixup/cutmix restricted to physically plausible defect zones**. These multiply your effective dataset without violating ultrasound physics — the key to limited-data success.
+Implement all seven defined in the data strategy, as an `albumentations`-style pipeline plus custom ops:
+amplitude variation (gain scaling), speckle/noise injection (multiplicative speckle), defect translation+rotation, simulated attenuation (depth-dependent intensity falloff), elastic deformation, **synthetic defect insertion** (paste a real defect blob into a clean weld background with feathered edges), and **mixup/cutmix restricted to physically plausible defect zones**. These multiply the effective dataset without violating ultrasound physics — the key to limited-data success.
 
 ### 5.10 Training protocol & hyperparameters (starting point — tune)
 | Setting | Start value | Note |
@@ -205,9 +205,9 @@ amplitude variation (gain scaling), speckle/noise injection (multiplicative spec
 | Regularization | dropout 0.1–0.2, heavy aug | combat overfitting |
 | Seed | fixed + logged | reproducibility deliverable |
 
-### 5.11 Limited-data curriculum (exactly as the supervisor described)
+### 5.11 Limited-data curriculum (as defined in our data strategy)
 1. **Phase A — train on the full set**, fix all problems, push to best accuracy.
-2. **Phase B — data ablation:** retrain on 75% → 50% → 25% → 10% of images, plotting val Dice/accuracy vs dataset size. The scattering prior should make this curve *flat* far longer than a plain CNN — that flatness is your headline result proving limited-data robustness. Compare against a plain U-Net baseline to *show* the SCN advantage.
+2. **Phase B — data ablation:** retrain on 75% → 50% → 25% → 10% of images, plotting val Dice/accuracy vs dataset size. The scattering prior should make this curve *flat* far longer than a plain CNN — that flatness is our headline result proving limited-data robustness. Compare against a plain U-Net baseline to *show* the SCN advantage.
 
 ### 5.12 Evaluation metrics
 Segmentation: **Dice / IoU per class**, boundary-F1. Classification: accuracy, precision, recall, F1, confusion matrix (mirror the reference paper's confusion-matrix presentation). Characterization: mean absolute error of size_mm vs ground truth. Always report the **data-ablation curve** from §5.11.
@@ -219,20 +219,20 @@ Segmentation: **Dice / IoU per class**, boundary-F1. Classification: accuracy, p
 The methodology requires picking the XAI that *aligns with this specific model* — not using everything. Here is the reasoned selection, matched to each part of the architecture.
 
 ### 6.1 Match the method to the head
-**For the segmentation head → Grad-CAM / Grad-CAM++ (and Seg-Grad-CAM) on the last decoder convolutional block.** Evidence: a crack-tip *segmentation* study using a U-Net found gradient-based CAMs (Grad-CAM, Grad-CAM++) significantly more *correct, complete, and compact* than gradient-free CAMs (Score-CAM, Eigen-CAM, Ablation-CAM); Grad-CAM applied to a U-Net's final layer reliably highlights the true target region. Your domain (cracks/porosity/slag) is essentially the same imaging-defect-segmentation setting, so this transfers directly. Grad-CAM also needs **no retraining and no architecture change** and works on any differentiable CNN — zero risk to your accuracy. **Deployed choice: Grad-CAM++** — in our method comparison it was the most faithful explainer (see §6.3), so it is the one wired into the pipeline and dashboard.
+**For the segmentation head → Grad-CAM / Grad-CAM++ (and Seg-Grad-CAM) on the last decoder convolutional block.** Evidence: a crack-tip *segmentation* study using a U-Net found gradient-based CAMs (Grad-CAM, Grad-CAM++) significantly more *correct, complete, and compact* than gradient-free CAMs (Score-CAM, Eigen-CAM, Ablation-CAM); Grad-CAM applied to a U-Net's final layer reliably highlights the true target region. Our domain (cracks/porosity/slag) is essentially the same imaging-defect-segmentation setting, so this transfers directly. Grad-CAM also needs **no retraining and no architecture change** and works on any differentiable CNN — zero risk to our accuracy. **Deployed choice: Grad-CAM++** — in our method comparison it was the most faithful explainer (see §6.3), so it is the one wired into the pipeline and dashboard.
 
-**For the classification head → Grad-CAM++ for spatial attribution.** SHAP was *considered* here for feature attribution (DeepSHAP/GradientSHAP) — it is well-suited to a *classification* CNN/MLP and to the handcrafted shape features feeding severity (it would tell you "porosity area contributed +0.3 toward the 'porosity' class"). **It was not implemented:** the neural classification head is the weak one we deliberately route around (defect *type* comes from the separate scattering classifier, 0.88 balanced), so attributing a head we don't rely on adds a heavy dependency for little value. The implemented XAI is gradient CAMs on the segmentation head plus intrinsic attention maps.
+**For the classification head → Grad-CAM++ for spatial attribution.** SHAP was *considered* here for feature attribution (DeepSHAP/GradientSHAP) — it is well-suited to a *classification* CNN/MLP and to the handcrafted shape features feeding severity (it would report, e.g., "porosity area contributed +0.3 toward the 'porosity' class"). **It was not implemented:** the neural classification head is the weak one we deliberately route around (defect *type* comes from the separate scattering classifier, 0.88 balanced), so attributing a head we don't rely on adds a heavy dependency for little value. The implemented XAI is gradient CAMs on the segmentation head plus intrinsic attention maps.
 
-**Intrinsic, free explainability → your CBAM spatial-attention maps and Attention-Gate coefficients.** Your model *already* produces attention maps. Surface them as a first-class explanation; they require zero extra computation and are faithful by construction.
+**Intrinsic, free explainability → the CBAM spatial-attention maps and Attention-Gate coefficients.** Our model *already* produces attention maps. Surface them as a first-class explanation; they require zero extra computation and are faithful by construction.
 
 **Secondary / sanity-check methods → Integrated Gradients and SmoothGrad.** Use them to corroborate Grad-CAM (agreement across methods = trustworthy explanation). NeuroXAI-style multi-method frameworks do exactly this for U-Net segmentation.
 
-### 6.2 What to avoid, and why (write this in the report — it shows judgment)
+### 6.2 What we ruled out, and why
 - **SHAP on the segmentation mask:** SHAP is *incompatible with mask-based, multi-channel outputs* (the same reason it fails on Mask-R-CNN/YOLO) — so it was never an option for the seg head. It was right *in principle* for the class head, but we did not implement it there either (we route around that head — see §6.1).
-- **LIME:** superpixel perturbation is poor for fine speckle/texture in TFM and is unstable run-to-run — not your primary tool.
+- **LIME:** superpixel perturbation is poor for fine speckle/texture in TFM and is unstable run-to-run — not a primary tool.
 - **Pure occlusion saliency:** correct but slow and coarse; keep only as an optional cross-check.
 
-### 6.3 Faithfulness checks (the "standards" the supervisor wants)
+### 6.3 Faithfulness checks (the "standards" requirement)
 Don't just produce pretty heatmaps — *quantify* them: deletion/insertion AUC, and pointing-game accuracy against the ground-truth mask. Report a single trust score per explanation so Student 4's dashboard can display confidence. This is what makes the XAI "adhere to standards." **Result:** the comparison ranked **Grad-CAM++ highest** (trust 0.97, deletion 0.05, insertion 0.95, pointing-game 1.0), ahead of Grad-CAM, LIME and SHAP — so Grad-CAM++ is the deployed explainer.
 
 **Selection summary (one table for the report).** "Implemented" = what actually runs in `src/xai/`; "Considered" = evaluated in the design but not built.
@@ -259,19 +259,23 @@ In NDT/Industry-4.0 practice a digital twin is a **virtual replica of a physical
 - **Application layer:** the dashboard below.
 
 ### 7.3 Dashboard (Streamlit or Dash — the PDF's tools)
-Recommended **Streamlit** for a beginner (fastest to a working UI). Views:
+We use **Streamlit** (fastest path to a working UI). Views:
 1. **Weld map** — 2D/3D weld with colour-coded defect markers (severity → colour); click a defect to open its card.
 2. **Defect card** — TFM crop + predicted mask overlay + **XAI heatmap** (from Student 3) + measured size/orientation/severity + confidence + trust score.
 3. **Health panel** — overall weld health index, defect counts by type, pass/fail vs the chosen acceptance standard.
 4. **History/trend** — health index over successive inspections; RUL projection if implemented.
 5. **Upload-and-infer** — drop a new TFM image (colour *or* grayscale) → pipeline runs → twin updates live. This visibly demonstrates the colour/grayscale robustness.
 
+Two add-ons round out the final dashboard:
+- **Continuous-feed mode** — auto-processes a whole folder of scans as a live "video feed", with play/pause/step controls, a running weld-health timeline, and a PASS/REVIEW/FAIL tally that updates as each image is consumed.
+- **Single-scan pop-up** (`scripts/show_result.py`) — opens one image's model mask + Grad-CAM++ overlay + health verdict in a standalone window, for a quick live demo without launching the full dashboard.
+
 ### 7.4 Integration layer
 A thin Python service: `image → preprocess (S1) → model (S2) → characterization → XAI (S3) → defects.json + overlays → dashboard (S4)`. Keep it a single callable so the demo is one click. For the "real-time streaming / IoT / cloud" bonus modules, wrap this callable behind a small FastAPI endpoint later — but get the offline pipeline solid first.
 
 ---
 
-# PART 8 — BUILD ORDER FOR A BEGINNER (VS Code)
+# PART 8 — INCREMENTAL BUILD ORDER (VS Code)
 
 ### 8.1 Environment (do this first)
 1. Install Python 3.10+, VS Code, the Python extension, and Git.
@@ -309,11 +313,11 @@ paut-digital-twin/
 - **W8:** S4 digital twin + dashboard + integration.
 - **W9–10:** report, figures, demo, polish, optional RUL/streaming modules.
 
-**Beginner tip:** at each step, first make it *run on one image*, then make it *correct*, then make it *fast*. Commit after each working step.
+**Working practice:** at each step we first make it run on one image, then correct, then fast — committing after each working step.
 
 ---
 
-# PART 9 — "ACCURACY IS LOW" PLAYBOOK (solve slowly, as the supervisor said)
+# PART 9 — "ACCURACY IS LOW" PLAYBOOK (solve slowly, one change at a time)
 
 When classification/segmentation underperforms, change *one thing at a time* in this order and log each result:
 
@@ -324,13 +328,13 @@ When classification/segmentation underperforms, change *one thing at a time* in 
 5. **Augmentation:** turn on the physics-aware set; verify synthetic-defect insertion looks realistic (bad synthetics hurt).
 6. **Attention sanity:** view CBAM/attention-gate maps — if they ignore defects, the fusion is mis-wired.
 7. **Then, and only then,** tune lr/schedule/epochs.
-8. **Prove the point:** run the data-ablation curve and the plain-U-Net baseline — if SCN stays flat while the baseline collapses, that *is* your result and your validation of the supervisor's reason.
+8. **Prove the point:** run the data-ablation curve and the plain-U-Net baseline — if SCN stays flat while the baseline collapses, that *is* our result and the validation of our design rationale.
 
 ---
 
 ## Acceptance-criteria reminder (don't fabricate)
-Severity thresholds and pass/fail rules must come from a real weld-acceptance standard (ISO 5817 / ASME BPVC) and your domain expert — not from invented numbers. Flag every such value in the report as standard-derived or as a tunable placeholder pending expert input.
+Severity thresholds and pass/fail rules must come from a real weld-acceptance standard (ISO 5817 / ASME BPVC) and a domain expert — not from invented numbers. Flag every such value in the report as standard-derived or as a tunable placeholder pending expert input.
 
 ---
 
-*This document is your single source of truth. Build it in the Part-8 order, keep the Part-2 reason in the report's introduction, and let the Part-9 playbook guide you whenever accuracy stalls.*
+*This document is the project's single source of truth. We build in the Part-8 order, keep the Part-2 reason in the report's introduction, and let the Part-9 playbook guide us whenever accuracy stalls.*

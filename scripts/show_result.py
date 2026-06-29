@@ -8,7 +8,7 @@ Examples:
     # Student 2 — model only (input + segmentation + weld map)
     py -3.14 scripts/show_result.py --image data/raw/slag/GS1.jpg --no-xai
 
-    # Student 3 — add Grad-CAM + the model's attention
+    # Student 3 — add Grad-CAM++ + the model's attention
     py -3.14 scripts/show_result.py --image data/raw/porosity/G12.jpg
 """
 from __future__ import annotations
@@ -30,7 +30,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Pop up an image window of the model/XAI result")
     ap.add_argument("--image", required=True, help="path to a PAUT image")
     ap.add_argument("--checkpoint", default="checkpoints/scn_attn_unet_best.pt")
-    ap.add_argument("--no-xai", action="store_true", help="model only (skip Grad-CAM/attention)")
+    ap.add_argument("--no-xai", action="store_true", help="model only (skip Grad-CAM++/attention)")
     a = ap.parse_args(argv)
 
     run_xai = not a.no_xai

@@ -1,7 +1,7 @@
 """
-make_demo_feed.py — build a demo image sequence for the continuous digital-twin feed (sir 8).
+make_demo_feed.py — build a demo image sequence for the continuous digital-twin feed.
 
-Sir wants the twin to run automatically over ~15 images, INCLUDING some no-defect images, as
+The twin should run automatically over ~15 images, INCLUDING some no-defect images, as
 a live feed. Our dataset is all-defect (every weld image has a flaw), so this assembles a
 reproducible demo folder: real porosity + slag images interleaved with a few synthetic
 "clean" (no-defect) frames — a faint dark field with low-amplitude speckle and no bright flaw.

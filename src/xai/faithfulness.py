@@ -1,7 +1,7 @@
 """
 faithfulness.py — quantify whether an explanation is trustworthy (architecture.md §6.3).
 
-Pretty heatmaps aren't enough; the "standards" requirement means we MEASURE them:
+Pretty heatmaps aren't enough; to align explanations with inspection standards we quantify faithfulness:
 
   - deletion : progressively zero out the most-important pixels (by the heatmap)
     and watch the target score fall. A faithful map -> score drops fast -> LOW

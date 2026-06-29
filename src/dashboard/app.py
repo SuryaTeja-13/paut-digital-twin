@@ -159,7 +159,7 @@ def _feed_full_detail(res, unit="px"):
 
 
 def render_live_feed(pipe):
-    """Continuous, automatic inspection of a folder as a live 'video feed' (sir 8).
+    """Continuous, automatic inspection of a folder as a live 'video feed'.
 
     A session-state player: Play streams frames automatically; Pause/Prev/Next step
     manually. 'Show full detail' pauses and renders the explainability + defect
@@ -339,7 +339,7 @@ with tab_xai:
         st.caption("Grad-CAM++ = gradient-based saliency on the decoder; trust = deletion/insertion + "
                    "pointing-game (architecture.md Part 6).")
     else:
-        st.info("Enable 'Run explainability' in the sidebar to see Grad-CAM + attention.")
+        st.info("Enable 'Run explainability' in the sidebar to see Grad-CAM++ + attention.")
 
 # ── Defects ──
 with tab_defects:
@@ -409,7 +409,7 @@ with tab_details:
 
     # ---- Explanation faithfulness (validation sample) ----
     st.markdown("### 🧪 Explanation faithfulness (validation sample)")
-    st.caption("How well the Grad-CAM explanations reflect the model, averaged over a validation "
+    st.caption("How well the Grad-CAM++ explanations reflect the model, averaged over a validation "
                "sample — separate from the single-image trust shown in the Explainability tab.")
     xsum = "data/processed/xai/_summary.csv"
     if os.path.exists(xsum):
@@ -445,7 +445,7 @@ with tab_details:
              f"`{res['classifier_type']}` (prob {res['classifier_prob']:.2f}) — weaker, not used.")
     st.markdown("**Pipeline**")
     st.code("image → preprocess (S1) → SCN-Attention U-Net (S2) → characterization (S2) "
-            "→ Grad-CAM + trust (S3) → digital-twin health (S4)")
+            "→ Grad-CAM++ + trust (S3) → digital-twin health (S4)")
     st.markdown("**Measurement scale**")
     st.write(f"pixel→mm = **{res['pixel_to_mm']}** → values shown in **{unit}**. "
              "Scale-free fields (orientation, aspect ratio, eccentricity) are correct regardless.")

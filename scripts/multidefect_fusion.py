@@ -1,10 +1,11 @@
 """
-multidefect_fusion.py — does the model find BOTH defect types in one image? (sir's point 10)
+multidefect_fusion.py — does the model find BOTH defect types in one image?
 
-Sir asked: take a porosity image and a slag image from our dataset, fuse them into one
-image, feed it to the model, and check whether it still detects both correctly. This is a
-genuine generalisation test, because every TRAINING image is single-type (one weld = one
-defect class, design decision §2) — the model has never seen porosity and slag together.
+This multi-defect fusion test takes a porosity image and a slag image from our dataset,
+fuses them into one image, feeds it to the model, and checks whether it still detects both
+correctly. This is a genuine generalisation test, because every TRAINING image is
+single-type (one weld = one defect class, design decision §2) — the model has never seen
+porosity and slag together.
 
 Method
   - Pair a porosity image with a slag image.
@@ -147,7 +148,7 @@ def main(argv=None):
            f"- **{verdict}.**",
            f"- The miss is asymmetric: **{weaker}** is detected less often "
            f"(porosity {pdet*100:.0f}% vs slag {sdet*100:.0f}%). This matches its weaker "
-           "stand-alone score (porosity Dice ~0.45 vs slag ~0.68): when the fainter porosity is "
+           "stand-alone score (porosity Dice ~0.66 vs slag ~0.71): when the fainter porosity is "
            "max-blended with the stronger slag, the dominant signal suppresses it.",
            "- Detection is per-pixel, so the head *can* light up both class channels when both "
            "signatures are clearly present (see the both-detected cases) — the limit is signal "

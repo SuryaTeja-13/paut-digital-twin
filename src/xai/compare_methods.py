@@ -1,14 +1,14 @@
 """
-compare_methods.py — benchmark XAI methods on the SAME footing (sir's point 1).
+compare_methods.py — benchmark XAI methods on the SAME footing.
 
-Sir asked: try different XAI methods (LIME, SHAP, ...) and show which works best,
-because different methods can suit different image classes. We compare four methods
-on identical images with identical faithfulness metrics, then plot the per-class
-difference.
+The goal here is to try several XAI methods (LIME, SHAP, ...) and show which one
+works best, since different methods can suit different image classes. We compare
+four methods on identical images with identical faithfulness metrics, then plot
+the per-class difference.
 
 Methods
-  - Grad-CAM        — gradient saliency on the decoder (our primary).
-  - Grad-CAM++      — refined gradient saliency.
+  - Grad-CAM        — baseline gradient saliency on the decoder.
+  - Grad-CAM++      — refined gradient saliency (Seg-Grad-CAM) — our deployed explainer.
   - LIME            — superpixel perturbation (model-agnostic).
   - SHAP            — Shapley-value attribution via the image partition masker.
 

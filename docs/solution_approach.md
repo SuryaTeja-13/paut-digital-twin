@@ -38,7 +38,7 @@ and a *develop-local / train-in-cloud* workflow.
  ┌─────────────┐    │  ┌──────────┐  ┌────────────────┐  ┌──────────┐  ┌──────────┐  │
  │ S1          │    │  │ S2       │  │ S2             │  │ S3       │  │ S4       │  │
  │ Preprocess  │───▶│  │ SCN-Attn │─▶│ Characterize   │─▶│ XAI      │─▶│ Digital  │  │
- │ → amplitude │    │  │ U-Net    │  │ (regionprops,  │  │ Grad-CAM │  │ Twin     │  │
+ │ → amplitude │    │  │ U-Net    │  │ (regionprops,  │  │ Grad-CAM++│  │ Twin     │  │
  │   patch     │    │  │ (+ type  │  │  PCA, severity)│  │ + trust  │  │ health   │  │
  │ 1×256×256   │    │  │  clf)    │  │                │  │  score   │  │ PASS/etc │  │
  └─────────────┘    │  └──────────┘  └────────────────┘  └──────────┘  └──────────┘  │
@@ -290,6 +290,13 @@ chain (S1 → S2 → S3 → S4) and returns one structured dict with everything 
   fixed a real confusion: weld *health* is this part's condition; model *accuracy* is how good the
   model is — two different numbers.)
 
+Two further add-ons round out the dashboard:
+- **Continuous-feed mode** — auto-processes a whole folder as a live feed, with play / pause / step
+  controls and a running health timeline plus a PASS / REVIEW / FAIL tally, so a batch of scans can be
+  watched flowing through the twin in real time.
+- **Single-scan pop-up** (`scripts/show_result.py`) — surfaces one image's mask + Grad-CAM++ overlay +
+  health verdict in a standalone window, handy for live demos.
+
 ---
 
 ## 9. Data-ablation experiment  —  `scripts/run_ablation.py`
@@ -334,7 +341,7 @@ curve at `data/processed/ablation/type_clf_ablation.png`.)
   give fast CPU smoke-tests; `notebooks/train_colab.ipynb` runs full GPU training.
 - **Everything config-driven** (`configs/*.yaml`) — the same code runs locally and in the cloud by
   swapping a YAML.
-- **Module-by-module with tests.** 6 test files (`tests/`), ~37 tests, including the loss-collapse
+- **Module-by-module with tests.** 7 test files (`tests/`), ~38 tests, including the loss-collapse
   regression guard — each milestone is verified before the next is built.
 - **Reproducibility:** fixed seeds, deterministic splits, manifests as contracts between stages.
 
@@ -361,4 +368,4 @@ curve at `data/processed/ablation/type_clf_ablation.png`.)
 | Severity / pass-fail thresholds | No calibrated standard yet | Tunable placeholders; calibrate to ISO 5817 / ASME |
 | `pixel_to_mm` unknown | Scale not provided | Defaults to 1.0 (pixels); a real value plugs in, no code change |
 
-Each is documented in code and `design_decisions.md`, so nothing is hidden.
+Each is documented in code and in `design_decisions.md` (repo root), so nothing is hidden.

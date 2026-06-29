@@ -43,7 +43,8 @@ attention U-Net gives the precise masks needed for defect characterization.
 8. **Physics-aware augmentation** applied to the training split only.
 9. **Scattering branch via Kymatio**, fixed filters (no gradients), J=2–3, L=8, order=2. Not trained.
 10. **Loss = 0.6·Dice-Focal(seg) + 0.3·classification + 0.1·boundary**, with a foreground-focused
-    Tversky term added so thin defects are not lost to the background-vs-defect pixel imbalance.
+    Focal-Tversky term (alpha=0.3, beta=0.7) added to fix an all-background collapse where the head
+    ignored the rare defect pixels.
 11. **Characterization is derived from the mask** (blobs / regionprops / PCA): length, width, area,
     orientation, centroid, equivalent diameter, aspect ratio, severity.
     - `pixel_to_mm` is unknown for now → default 1.0, measurements reported in PIXELS. It is a

@@ -1,5 +1,5 @@
 """
-verify_math.py — "practical == mathematical" check (sir's point 9).
+verify_math.py — our "math == code" verification check.
 
 For every formula the project relies on (segmentation losses + the digital-twin
 health index) we compute the value TWICE:

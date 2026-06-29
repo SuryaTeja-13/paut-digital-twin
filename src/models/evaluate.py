@@ -50,8 +50,9 @@ def main(argv=None):
                    torch.from_numpy(np.load(row["mask_path"]).astype(np.int64)).unsqueeze(0))
         y_true.append(classes.index(row["class"]))
         y_pred.append(r["cls_idx"])
-        # seg-derived type = which defect class-channel has more pixels (the
-        # signal the app actually uses)
+        # seg-derived type = which defect class-channel has more pixels (a
+        # baseline comparison; the deployed app uses the scattering-feature
+        # classifier below)
         areas = [int((r["seg"] == ci + 1).sum()) for ci in range(len(classes))]
         y_pred_seg.append(int(np.argmax(areas)))
         if int((r["seg"] > 0).sum()) < 10:        # near-empty predicted mask
@@ -81,7 +82,7 @@ def main(argv=None):
     print(f"  confusion [rows=true {classes}, cols=pred]:\n{cm}\n")
 
     # seg-derived type accuracy (what the dashboard uses)
-    print("== Type via SEGMENTATION (used by the app) ==")
+    print("== Type via SEGMENTATION (baseline) ==")
     seg_per_class = []
     for c, name in enumerate(classes):
         m = y_true == c
